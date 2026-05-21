@@ -1,0 +1,41 @@
+FROM node:22-alpine AS builder
+
+ARG SERVICE_NAME
+
+WORKDIR /app
+
+COPY tsconfig.base.json ./
+COPY shared/ ./shared/
+COPY services/${SERVICE_NAME}/ ./services/${SERVICE_NAME}/
+
+RUN npm install --prefix services/${SERVICE_NAME}
+RUN ln -s /app/services/${SERVICE_NAME}/node_modules /app/node_modules
+RUN npm run build --prefix services/${SERVICE_NAME}
+
+# ---- Runtime ----
+FROM node:22-alpine AS runner
+
+ARG SERVICE_NAME
+ENV SERVICE_NAME=${SERVICE_NAME}
+
+WORKDIR /app
+
+COPY tsconfig.base.json ./
+COPY shared/ ./shared/
+COPY services/${SERVICE_NAME}/package.json      ./services/${SERVICE_NAME}/package.json
+COPY services/${SERVICE_NAME}/package-lock.json ./services/${SERVICE_NAME}/package-lock.json
+COPY services/${SERVICE_NAME}/drizzle.config.ts  ./services/${SERVICE_NAME}/drizzle.config.ts
+COPY services/${SERVICE_NAME}/drizzle/           ./services/${SERVICE_NAME}/drizzle/
+
+# Instala TODAS as deps (incluindo drizzle-kit para rodar migrations)
+RUN npm install --prefix services/${SERVICE_NAME}
+
+# Copia dist do builder
+COPY --from=builder /app/services/${SERVICE_NAME}/dist ./services/${SERVICE_NAME}/dist
+
+# Symlink para ts-node resolver paths no drizzle-kit (migration usa dotenv)
+RUN ln -s /app/services/${SERVICE_NAME}/node_modules /app/node_modules
+
+WORKDIR /app/services/${SERVICE_NAME}
+
+CMD ["npm", "run", "start:prod"]

@@ -1,0 +1,9 @@
+{
+  "name": "athlos-monorepo",
+  "private": true,
+  "scripts": {
+    "start:associacao": "npm run start:dev --prefix services/associacao",
+    "typecheck:associacao": "npm run typecheck --prefix services/associacao",
+    "lint:associacao": "npm run lint --prefix services/associacao"
+  }
+}

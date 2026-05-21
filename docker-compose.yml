@@ -1,0 +1,95 @@
+x-service-defaults: &service-defaults
+  restart: unless-stopped
+  depends_on:
+    postgres:
+      condition: service_healthy
+    rabbitmq:
+      condition: service_healthy
+  networks:
+    - athlos-network
+
+services:
+  # ─────────────────────────────────────────
+  # Infraestrutura
+  # ─────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init/01-create-databases.sql:/docker-entrypoint-initdb.d/01-create-databases.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - athlos-network
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      start_period: 30s
+      timeout: 20s
+      retries: 12
+    networks:
+      - athlos-network
+
+  adminer:
+    image: adminer:4.8.1-standalone
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    ports:
+      - "8080:8080"
+    networks:
+      - athlos-network
+
+  # ─────────────────────────────────────────
+  # Microsserviços Athlos
+  # ─────────────────────────────────────────
+  associacao:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_NAME: associacao
+    environment:
+      PORT: 4001
+      JWT_SECRET: athlos-super-secret-change-in-prod
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/athlos_associacao
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+    ports:
+      - "4001:4001"
+    command: >
+      sh -c "
+        npx drizzle-kit migrate &&
+        npm run start:prod
+      "
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+
+networks:
+  athlos-network:
