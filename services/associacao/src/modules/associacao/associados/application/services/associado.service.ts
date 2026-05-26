@@ -1,5 +1,6 @@
 import { CreateAssociadoDto } from "@associacao/associados/application/dto/create-associado.dto";
 import { UpdateAssociadoDto } from "@associacao/associados/application/dto/update-associado.dto";
+import { AssignCargoAssociadoDto } from "@associacao/associados/application/dto/assign-cargo-associado.dto";
 import { AssociadoDto } from "@associacao/associados/application/dto/associado.dto";
 import { AssociadoMessagingService } from "@associacao/associados/application/services/associado-messaging.service";
 import { Associado, StatusAssociado } from "@associacao/associados/domain/models/associado.entity";
@@ -124,5 +125,12 @@ export class AssociadoService {
   async findByAtletica(atleticaId: string): Promise<AssociadoDto[]> {
     const rows = await this.associadoRepository.findByAtletica(atleticaId);
     return rows.map((row) => AssociadoDto.fromAssociado(row)!);
+  }
+
+  async assignCargo(id: string, dto: AssignCargoAssociadoDto): Promise<void> {
+    const associado = await this.associadoRepository.findById(id);
+    if (!associado) throw new NotFoundException("Associado não encontrado");
+
+    await this.associadoRepository.assignCargo(id, dto.cargoId ?? null);
   }
 }

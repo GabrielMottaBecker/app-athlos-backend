@@ -1,0 +1,4 @@
+export enum TipoCargo {
+  ADMINISTRADOR = "ADMINISTRADOR",
+  MEMBRO_COMUM = "MEMBRO_COMUM",
+}
