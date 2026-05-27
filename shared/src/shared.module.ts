@@ -1,3 +1,4 @@
+import { AuthRpcService } from "./infra/auth/auth-rpc.service";
 import { Global, Module } from "@nestjs/common";
 import { SharedAuthModule } from "./infra/auth/shared-auth.module";
 import { DrizzleService } from "./infra/database/drizzle.service";
@@ -7,7 +8,7 @@ import { SharedMessagingService } from "./infra/messaging/shared-messaging.servi
 @Global()
 @Module({
   imports: [SharedAuthModule],
-  providers: [DrizzleService, RabbitMQService, SharedMessagingService],
-  exports: [SharedAuthModule, DrizzleService, RabbitMQService, SharedMessagingService],
+  providers: [DrizzleService, RabbitMQService, SharedMessagingService, AuthRpcService],
+  exports: [SharedAuthModule, DrizzleService, RabbitMQService, SharedMessagingService, AuthRpcService],
 })
 export class SharedModule {}
