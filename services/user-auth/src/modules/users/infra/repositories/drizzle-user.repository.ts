@@ -3,7 +3,6 @@ import { DrizzleService } from "@shared/infra/database/drizzle.service";
 import type { PaginationParams } from "@shared/infra/hateoas";
 import { User } from "@users/domain/models/user.entity";
 import type { UserRepository } from "@users/domain/repositories/user-repository.interface";
-import { teachersSchema } from "@users/infra/database/schemas/teacher.schema";
 import { usersSchema } from "@users/infra/database/schemas/user.schema";
 import { eq, sql } from "drizzle-orm";
 
@@ -15,7 +14,6 @@ export class DrizzleUserRepository implements UserRepository {
     await this.drizzleService.db.insert(usersSchema).values({
       email: user.email,
       password: user.password,
-      teacherId: user.teacherRefId ?? null,
       permissions: user.permissions,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -28,7 +26,6 @@ export class DrizzleUserRepository implements UserRepository {
       .set({
         email: user.email,
         password: user.password,
-        teacherId: user.teacherRefId ?? null,
         permissions: user.permissions,
         updatedAt: new Date(),
       })
@@ -41,55 +38,30 @@ export class DrizzleUserRepository implements UserRepository {
       .where(eq(usersSchema.id, id));
   }
 
-  async clearTeacherReference(teacherRefId: string): Promise<void> {
-    await this.drizzleService.db
-      .update(usersSchema)
-      .set({
-        teacherId: null,
-        updatedAt: new Date(),
-      })
-      .where(eq(usersSchema.teacherId, teacherRefId));
-  }
-
   async findById(id: string): Promise<User | null> {
     const result = await this.drizzleService.db
-      .select({
-        user: usersSchema,
-        teacher: teachersSchema,
-      })
+      .select()
       .from(usersSchema)
-      .leftJoin(teachersSchema, eq(usersSchema.teacherId, teachersSchema.id))
       .where(eq(usersSchema.id, id))
       .limit(1);
 
-    return this.toEntity(result[0]?.user, result[0]?.teacher ?? null);
+    return this.toEntity(result[0]);
   }
 
   async findByEmail(email: string): Promise<User | null> {
     const result = await this.drizzleService.db
-      .select({
-        user: usersSchema,
-        teacher: teachersSchema,
-      })
+      .select()
       .from(usersSchema)
-      .leftJoin(teachersSchema, eq(usersSchema.teacherId, teachersSchema.id))
       .where(eq(usersSchema.email, email.toLowerCase()))
       .limit(1);
 
-    return this.toEntity(result[0]?.user, result[0]?.teacher ?? null);
+    return this.toEntity(result[0]);
   }
 
   async findAll(): Promise<User[]> {
-    const rows = await this.drizzleService.db
-      .select({
-        user: usersSchema,
-        teacher: teachersSchema,
-      })
-      .from(usersSchema)
-      .leftJoin(teachersSchema, eq(usersSchema.teacherId, teachersSchema.id));
-
+    const rows = await this.drizzleService.db.select().from(usersSchema);
     return rows
-      .map((row) => this.toEntity(row.user, row.teacher ?? null))
+      .map((row) => this.toEntity(row))
       .filter((user): user is User => user !== null);
   }
 
@@ -101,12 +73,8 @@ export class DrizzleUserRepository implements UserRepository {
 
     const [rows, [countResult]] = await Promise.all([
       this.drizzleService.db
-        .select({
-          user: usersSchema,
-          teacher: teachersSchema,
-        })
+        .select()
         .from(usersSchema)
-        .leftJoin(teachersSchema, eq(usersSchema.teacherId, teachersSchema.id))
         .limit(limit)
         .offset(offset),
       this.drizzleService.db
@@ -116,7 +84,7 @@ export class DrizzleUserRepository implements UserRepository {
 
     return {
       rows: rows
-        .map((row) => this.toEntity(row.user, row.teacher ?? null))
+        .map((row) => this.toEntity(row))
         .filter((user): user is User => user !== null),
       total: countResult.count,
     };
@@ -124,7 +92,6 @@ export class DrizzleUserRepository implements UserRepository {
 
   private toEntity(
     user?: typeof usersSchema.$inferSelect,
-    teacher?: typeof teachersSchema.$inferSelect | null,
   ): User | null {
     if (!user) return null;
 
@@ -132,9 +99,6 @@ export class DrizzleUserRepository implements UserRepository {
       id: user.id,
       email: user.email,
       password: user.password,
-      teacherRefId: user.teacherId,
-      teacherId: teacher?.externalId,
-      teacherName: teacher?.name,
       permissions: user.permissions,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,

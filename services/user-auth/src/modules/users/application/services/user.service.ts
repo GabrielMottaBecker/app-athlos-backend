@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -15,7 +14,6 @@ import {
   USER_REPOSITORY,
   type UserRepository,
 } from "@users/domain/repositories/user-repository.interface";
-import { DrizzleTeacherRepository } from "@users/infra/repositories/drizzle-teacher.repository";
 import bcrypt from "bcryptjs";
 
 @Injectable()
@@ -23,21 +21,16 @@ export class UserService {
   constructor(
     @Inject(USER_REPOSITORY)
     private readonly userRepository: UserRepository,
-    private readonly teacherRepository: DrizzleTeacherRepository,
   ) {}
 
   async create(dto: CreateUserDto): Promise<void> {
     const existing = await this.userRepository.findByEmail(dto.email);
     if (existing) throw new ConflictException("Email already registered");
 
-    const teacher = await this.resolveTeacher(dto.teacherId, dto.teacherName);
     const hashedPassword = await bcrypt.hash(dto.password, 10);
     const user = User.restore({
       email: dto.email.toLowerCase(),
       password: hashedPassword,
-      teacherRefId: teacher?.id,
-      teacherId: teacher?.externalId,
-      teacherName: teacher?.name,
       permissions: dto.permissions as string[],
     })!;
 
@@ -57,13 +50,6 @@ export class UserService {
     if (dto.password) {
       const hashedPassword = await bcrypt.hash(dto.password, 10);
       user.withPassword(hashedPassword);
-    }
-
-    if (dto.teacherId !== undefined || dto.teacherName !== undefined) {
-      const teacher = await this.resolveTeacher(dto.teacherId, dto.teacherName);
-      user.withTeacherRefId(teacher?.id);
-      user.withTeacherId(teacher?.externalId);
-      user.withTeacherName(teacher?.name);
     }
 
     if (dto.permissions !== undefined)
@@ -109,25 +95,5 @@ export class UserService {
     if (!valid) return null;
 
     return { id: user.id!, email: user.email, permissions: user.permissions };
-  }
-
-  private async resolveTeacher(
-    teacherId?: string,
-    teacherName?: string,
-  ): Promise<{ id: string; externalId: string; name: string } | null> {
-    if (teacherId === undefined && teacherName === undefined) {
-      return null;
-    }
-
-    if (!teacherId || !teacherName) {
-      throw new BadRequestException(
-        "teacherId and teacherName must be provided together",
-      );
-    }
-
-    return this.teacherRepository.upsert({
-      externalId: teacherId,
-      name: teacherName,
-    });
   }
 }

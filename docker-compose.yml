@@ -87,6 +87,26 @@ services:
         npm run start:prod
       "
 
+  user-auth:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_NAME: user-auth
+    environment:
+      PORT: 4007
+      JWT_SECRET: athlos-super-secret-change-in-prod
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/athlos_user_auth
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+    ports:
+      - "4007:4007"
+    command: >
+      sh -c "
+        npx drizzle-kit migrate &&
+        npm run start:prod
+      "
+
 volumes:
   postgres_data:
   rabbitmq_data:

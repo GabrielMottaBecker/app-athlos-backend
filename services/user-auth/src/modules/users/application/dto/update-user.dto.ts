@@ -6,7 +6,6 @@ import {
   IsEnum,
   IsOptional,
   IsString,
-  IsUUID,
 } from "class-validator";
 
 export class UpdateUserDto {
@@ -20,21 +19,11 @@ export class UpdateUserDto {
   @IsOptional()
   password?: string;
 
-  @ApiProperty({ example: "uuid-do-professor", required: false })
-  @IsUUID()
-  @IsOptional()
-  teacherId?: string;
-
-  @ApiProperty({ example: "Maria Souza", required: false })
-  @IsString()
-  @IsOptional()
-  teacherName?: string;
-
   @ApiProperty({
     enum: Permission,
     isArray: true,
     required: false,
-    example: [Permission.STUDENTS_READ],
+    example: [Permission.ASSOCIADOS_READ],
   })
   @IsArray()
   @IsEnum(Permission, { each: true })

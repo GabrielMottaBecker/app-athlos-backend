@@ -26,16 +26,12 @@ export class UserResponseDto {
   private constructor(
     id: string,
     email: string,
-    teacherId: string | undefined,
-    teacherName: string | undefined,
     permissions: string[],
     createdAt: Date | undefined,
     updatedAt: Date | undefined,
   ) {
     this.id = id;
     this.email = email;
-    this.teacherId = teacherId;
-    this.teacherName = teacherName;
     this.permissions = permissions;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
@@ -46,8 +42,6 @@ export class UserResponseDto {
     return new UserResponseDto(
       user.id!,
       user.email,
-      user.teacherId,
-      user.teacherName,
       user.permissions,
       user.createdAt,
       user.updatedAt,
