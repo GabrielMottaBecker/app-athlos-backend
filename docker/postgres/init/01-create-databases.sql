@@ -7,3 +7,8 @@ SELECT 'CREATE DATABASE athlos_identidade'
 WHERE NOT EXISTS (
   SELECT FROM pg_database WHERE datname = 'athlos_identidade'
 )\gexec
+
+SELECT 'CREATE DATABASE athlos_loja'
+WHERE NOT EXISTS (
+  SELECT FROM pg_database WHERE datname = 'athlos_loja'
+)\gexec

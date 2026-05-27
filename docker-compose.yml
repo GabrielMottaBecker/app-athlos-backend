@@ -107,6 +107,26 @@ services:
         npm run start:prod
       "
 
+  ms-loja:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_NAME: ms-loja
+    environment:
+      PORT: 4003
+      JWT_SECRET: athlos-super-secret-change-in-prod
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/athlos_loja
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+    ports:
+      - "4003:4003"
+    command: >
+      sh -c "
+        npx drizzle-kit migrate &&
+        npm run start:prod
+      "
+
 volumes:
   postgres_data:
   rabbitmq_data:

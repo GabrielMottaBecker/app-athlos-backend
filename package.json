@@ -4,8 +4,10 @@
   "scripts": {
     "start:associacao": "npm run start:dev --prefix services/associacao",
     "start:identidade": "npm run start:dev --prefix services/identidade",
+    "start:ms-loja": "npm run start:dev --prefix services/ms-loja",
     "typecheck:associacao": "npm run typecheck --prefix services/associacao",
     "typecheck:identidade": "npm run typecheck --prefix services/identidade",
+    "typecheck:ms-loja": "npm run typecheck --prefix services/ms-loja",
     "lint:associacao": "npm run lint --prefix services/associacao"
   },
   "devDependencies": {
