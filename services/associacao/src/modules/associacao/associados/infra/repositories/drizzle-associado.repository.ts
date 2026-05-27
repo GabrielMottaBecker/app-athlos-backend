@@ -50,6 +50,13 @@ export class DrizzleAssociadoRepository implements AssociadoRepository {
       .where(eq(associadosSchema.id, id));
   }
 
+  async assignCargo(id: string, cargoId: string | null): Promise<void> {
+    await this.drizzleService.db
+      .update(associadosSchema)
+      .set({ cargoId, updatedAt: new Date() })
+      .where(eq(associadosSchema.id, id));
+  }
+
   async findById(id: string): Promise<Associado | null> {
     const result = await this.drizzleService.db
       .select()
@@ -128,6 +135,7 @@ export class DrizzleAssociadoRepository implements AssociadoRepository {
       status: row.status as StatusAssociado,
       atleticaId: row.atleticaId,
       taxaAthlos: Number(row.taxaAthlos),
+      cargoId: row.cargoId ?? null,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     });

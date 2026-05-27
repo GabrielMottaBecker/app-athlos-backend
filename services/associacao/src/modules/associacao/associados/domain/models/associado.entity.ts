@@ -12,6 +12,7 @@ export class Associado {
   private _status!: StatusAssociado;
   private _atleticaId!: string;
   private _taxaAthlos!: number;
+  private _cargoId?: string | null;
   private readonly _createdAt?: Date;
   private readonly _updatedAt?: Date;
 
@@ -29,6 +30,7 @@ export class Associado {
   get status(): StatusAssociado { return this._status; }
   get atleticaId(): string { return this._atleticaId; }
   get taxaAthlos(): number { return this._taxaAthlos; }
+  get cargoId(): string | null | undefined { return this._cargoId; }
   get createdAt(): Date | undefined { return this._createdAt; }
   get updatedAt(): Date | undefined { return this._updatedAt; }
 
@@ -38,6 +40,7 @@ export class Associado {
   withTelefone(telefone: string) { this._telefone = telefone; return this; }
   withStatus(status: StatusAssociado) { this._status = status; return this; }
   withAtleticaId(atleticaId: string) { this._atleticaId = atleticaId; return this; }
+  withCargoId(cargoId: string | null) { this._cargoId = cargoId; return this; }
 
   /**
    * Taxa de 0,5% cobrada por associação conforme requisito RF08
@@ -56,6 +59,7 @@ export class Associado {
     status: StatusAssociado;
     atleticaId: string;
     taxaAthlos: number;
+    cargoId?: string | null;
     createdAt?: Date;
     updatedAt?: Date;
   }): Associado | null {
@@ -69,6 +73,7 @@ export class Associado {
     associado._status = props.status;
     associado._atleticaId = props.atleticaId;
     associado._taxaAthlos = props.taxaAthlos;
+    associado._cargoId = props.cargoId ?? null;
 
     return associado;
   }

@@ -1,6 +1,7 @@
 import { CreateAssociadoDto } from "@associacao/associados/application/dto/create-associado.dto";
 import { UpdateAssociadoDto } from "@associacao/associados/application/dto/update-associado.dto";
 import { ChangeStatusAssociadoDto } from "@associacao/associados/application/dto/change-status-associado.dto";
+import { AssignCargoAssociadoDto } from "@associacao/associados/application/dto/assign-cargo-associado.dto";
 import { AssociadoDto } from "@associacao/associados/application/dto/associado.dto";
 import { AssociadoService } from "@associacao/associados/application/services/associado.service";
 import {
@@ -103,5 +104,18 @@ export class AssociadosController {
   @ApiNotFoundResponse({ description: "Associado não encontrado" })
   async remove(@Param("id") id: string): Promise<void> {
     return this.associadoService.remove(id);
+  }
+
+  @Patch(":id/cargo")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @RequirePermissions(Permission.ASSOCIADOS_WRITE)
+  @ApiOperation({ summary: "Atribuir ou remover cargo do associado" })
+  @ApiNoContentResponse({ description: "Cargo atribuído" })
+  @ApiNotFoundResponse({ description: "Associado não encontrado" })
+  async assignCargo(
+    @Param("id") id: string,
+    @Body() body: AssignCargoAssociadoDto,
+  ): Promise<void> {
+    return this.associadoService.assignCargo(id, body);
   }
 }

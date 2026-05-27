@@ -8,6 +8,7 @@ export interface AssociadoRepository {
   update(associado: Associado): Promise<void>;
   delete(id: string): Promise<void>;
   updateStatus(id: string, status: StatusAssociado): Promise<void>;
+  assignCargo(id: string, cargoId: string | null): Promise<void>;
   findById(id: string): Promise<Associado | null>;
   findByEmail(email: string): Promise<Associado | null>;
   findByDocumento(documento: string): Promise<Associado | null>;

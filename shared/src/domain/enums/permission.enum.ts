@@ -5,4 +5,7 @@ export enum Permission {
   USERS_READ = "users:read",
   USERS_WRITE = "users:write",
   USERS_DELETE = "users:delete",
+  CARGOS_READ = "cargos:read",
+  CARGOS_WRITE = "cargos:write",
+  CARGOS_DELETE = "cargos:delete",
 }
