@@ -12,3 +12,8 @@ SELECT 'CREATE DATABASE athlos_loja'
 WHERE NOT EXISTS (
   SELECT FROM pg_database WHERE datname = 'athlos_loja'
 )\gexec
+
+SELECT 'CREATE DATABASE athlos_pagamento'
+WHERE NOT EXISTS (
+  SELECT FROM pg_database WHERE datname = 'athlos_pagamento'
+)\gexec

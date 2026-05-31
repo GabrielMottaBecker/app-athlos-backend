@@ -133,3 +133,23 @@ volumes:
 
 networks:
   athlos-network:
+
+  pagamento:
+    <<: *service-defaults
+    build:
+      context: .
+      dockerfile: Dockerfile.service
+      args:
+        SERVICE_NAME: pagamento
+    environment:
+      PORT: 4004
+      JWT_SECRET: athlos-super-secret-change-in-prod
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/athlos_pagamento
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+    ports:
+      - "4004:4004"
+    command: >
+      sh -c "
+        npx drizzle-kit migrate &&
+        npm run start:prod
+      "
