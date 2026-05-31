@@ -8,4 +8,10 @@ export enum Permission {
   CARGOS_READ = "cargos:read",
   CARGOS_WRITE = "cargos:write",
   CARGOS_DELETE = "cargos:delete",
+  FINANCEIRO_READ = "financeiro:read",
+  FINANCEIRO_WRITE = "financeiro:write",
+  FINANCEIRO_DELETE = "financeiro:delete",
+  LOJINHA_READ = "lojinha:read",
+  LOJINHA_WRITE = "lojinha:write",
+  LOJINHA_DELETE = "lojinha:delete",
 }
