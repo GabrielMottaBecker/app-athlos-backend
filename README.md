@@ -30,6 +30,8 @@ Aguarde os healthchecks passarem (≈ 30s). Depois acesse:
 | **Swagger (docs)**   | http://localhost:4001/docs                    |
 | **Identidade API**   | http://localhost:4002                         |
 | **Swagger (docs)**   | http://localhost:4002/docs                    |
+| **Feed API**         | http://localhost:4003                         |
+| **Swagger (docs)**   | http://localhost:4003/docs                    |
 | **User-Auth API**    | http://localhost:4007                         |
 | **Swagger (docs)**   | http://localhost:4007/docs                    |
 | **Adminer (DB)**     | http://localhost:8080                         |
@@ -48,21 +50,25 @@ docker compose up -d postgres rabbitmq
 # 2. Copia os .env de cada serviço
 cp services/associacao/.env.example services/associacao/.env
 cp services/identidade/.env.example services/identidade/.env
+cp services/feed/.env.example services/feed/.env
 cp services/user-auth/.env.example services/user-auth/.env
 
 # 3. Instala dependências
 npm install --prefix services/associacao
 npm install --prefix services/identidade
+npm install --prefix services/feed
 npm install --prefix services/user-auth
 
 # 4. Roda as migrations
 cd services/associacao && npx drizzle-kit migrate && cd ../..
 cd services/identidade && npx drizzle-kit migrate && cd ../..
+cd services/feed       && npx drizzle-kit migrate && cd ../..
 cd services/user-auth  && npx drizzle-kit migrate && cd ../..
 
 # 5. Sobe os serviços em watch mode (em terminais separados)
 npm run start:associacao
 npm run start:identidade
+npm run start:feed
 npm run start:user-auth
 ```
 
@@ -75,7 +81,7 @@ athlos/
 ├── docker/
 │   └── postgres/
 │       └── init/
-│           └── 01-create-databases.sql     # Criação dos bancos (athlos_associacao, athlos_identidade, athlos_user_auth)
+│           └── 01-create-databases.sql     # Criação dos bancos (athlos_associacao, athlos_identidade, athlos_feed, athlos_user_auth)
 ├── shared/
 │   └── src/
 │       ├── contracts/
@@ -271,6 +277,9 @@ O `accessToken` é um JWT assinado com o secret `JWT_SECRET` contendo:
 | `cargos:read`       | Visualizar cargos                  |
 | `cargos:write`      | Criar e editar cargos              |
 | `cargos:delete`     | Remover cargos                     |
+| `eventos:read`      | Visualizar eventos e confirmar presenca |
+| `eventos:write`     | Criar e editar eventos             |
+| `eventos:delete`    | Remover eventos                    |
 | `users:read`        | Visualizar usuários do sistema     |
 | `users:write`       | Criar e editar usuários do sistema |
 | `users:delete`      | Remover usuários do sistema        |
@@ -373,6 +382,40 @@ POST /v1/auth/login
 
 ---
 
+## Endpoints — Microsserviço de Feed (porta 4003)
+
+### Eventos
+
+| Método   | Rota                                                   | Permissão        | Descrição                                |
+|----------|---------------------------------------------------------|------------------|------------------------------------------|
+| `GET`    | `/v1/eventos?_page=1&_size=10`                         | `eventos:read`   | Listar paginado                          |
+| `GET`    | `/v1/eventos/:id`                                      | `eventos:read`   | Buscar por ID                            |
+| `GET`    | `/v1/eventos/atletica/:atleticaId`                     | `eventos:read`   | Listar eventos de uma Atlética           |
+| `GET`    | `/v1/eventos/atletica/:atleticaId/tipo/:type`          | `eventos:read`   | Filtrar eventos por tipo                 |
+| `POST`   | `/v1/eventos`                                          | `eventos:write`  | Criar evento ou treino                   |
+| `PUT`    | `/v1/eventos/:id`                                      | `eventos:write`  | Atualizar evento ou treino               |
+| `DELETE` | `/v1/eventos/:id`                                      | `eventos:delete` | Remover evento ou treino                 |
+| `POST`   | `/v1/eventos/:id/presencas`                            | `eventos:read`   | Confirmar presença do usuário autenticado |
+| `DELETE` | `/v1/eventos/:id/presencas/:usuarioId`                 | `eventos:read`   | Remover confirmação de presença          |
+
+**Exemplo — Criar evento:**
+
+```json
+POST /v1/eventos
+{
+  "date": "JUN 14",
+  "type": "TREINO",
+  "typeColor": 4279282049,
+  "title": "TREINO DE FUTEBOL",
+  "time": "19:00 - 21:00",
+  "place": "Campo de Treinamento Alpha",
+  "bgColor": 4280179295,
+  "atleticaId": "uuid-da-atletica"
+}
+```
+
+---
+
 ## Endpoints — Microsserviço User-Auth (porta 4007)
 
 > Serviço legado de autenticação e gestão de usuários com suporte a HATEOAS.
@@ -426,7 +469,7 @@ POST /v1/auth/login
 | `associacao`     | 4001  | Associados, hierarquia (Core Domain)     | ✅ Implementado |
 | `identidade`     | 4002  | Autenticação e gestão de usuários        | ✅ Implementado |
 | `user-auth`      | 4007  | Autenticação legada com HATEOAS          | ✅ Implementado |
-| `feed`           | 4003  | Eventos e treinos (Supporting A)         | 🔜 Planejado    |
+| `feed`           | 4003  | Eventos e treinos (Supporting A)         | ✅ Implementado |
 | `financeiro`     | 4004  | Controle financeiro (Supporting B)       | 🔜 Planejado    |
 | `lojinha`        | 4005  | Loja atlética (Supporting B)             | 🔜 Planejado    |
 | `notificacoes`   | 4006  | Notificações push (Generic)              | 🔜 Planejado    |
@@ -439,11 +482,13 @@ POST /v1/auth/login
 # Rebuild de um serviço específico
 docker compose up --build associacao
 docker compose up --build identidade
+docker compose up --build feed
 docker compose up --build user-auth
 
 # Ver logs em tempo real
 docker compose logs -f associacao
 docker compose logs -f identidade
+docker compose logs -f feed
 docker compose logs -f user-auth
 
 # Recriar banco do zero
@@ -452,5 +497,6 @@ docker compose down -v && docker compose up --build
 # Acessar banco via psql
 docker compose exec postgres psql -U postgres -d athlos_associacao
 docker compose exec postgres psql -U postgres -d athlos_identidade
+docker compose exec postgres psql -U postgres -d athlos_feed
 docker compose exec postgres psql -U postgres -d athlos_user_auth
 ```

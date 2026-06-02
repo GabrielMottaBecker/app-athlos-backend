@@ -4,8 +4,10 @@
   "scripts": {
     "start:associacao": "npm run start:dev --prefix services/associacao",
     "start:identidade": "npm run start:dev --prefix services/identidade",
+    "start:feed": "npm run start:dev --prefix services/feed",
     "typecheck:associacao": "npm run typecheck --prefix services/associacao",
     "typecheck:identidade": "npm run typecheck --prefix services/identidade",
+    "typecheck:feed": "npm run typecheck --prefix services/feed",
     "lint:associacao": "npm run lint --prefix services/associacao"
   },
   "devDependencies": {

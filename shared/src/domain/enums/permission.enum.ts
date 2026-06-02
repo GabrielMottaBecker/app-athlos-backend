@@ -8,4 +8,7 @@ export enum Permission {
   CARGOS_READ = "cargos:read",
   CARGOS_WRITE = "cargos:write",
   CARGOS_DELETE = "cargos:delete",
+  EVENTOS_READ = "eventos:read",
+  EVENTOS_WRITE = "eventos:write",
+  EVENTOS_DELETE = "eventos:delete",
 }
