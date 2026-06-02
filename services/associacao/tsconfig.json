@@ -5,7 +5,8 @@
     "rootDir": "../..",
     "paths": {
       "@shared/*": ["../../shared/src/*"],
-      "@associacao/*": ["./src/modules/associacao/*"]
+      "@associacao/*": ["./src/modules/associacao/*"],
+      "@hierarquia/*": ["./src/modules/associacao/hierarquia/*"]
     }
   },
   "include": ["src/**/*.ts", "../../shared/src/**/*.ts"]

@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import type { Associado } from "@associacao/associados/domain/models/associado.entity";
 import { StatusAssociado } from "@associacao/associados/domain/models/associado.entity";
 
@@ -27,6 +27,9 @@ export class AssociadoDto {
   @ApiProperty({ example: 2.5, description: "Taxa de 0,5% sobre o valor de associação" })
   taxaAthlos!: number;
 
+  @ApiPropertyOptional({ example: "uuid-cargo", nullable: true, description: "ID do cargo atribuído ao associado" })
+  cargoId?: string | null;
+
   @ApiProperty()
   createdAt!: Date;
 
@@ -45,6 +48,7 @@ export class AssociadoDto {
     dto.status = associado.status;
     dto.atleticaId = associado.atleticaId;
     dto.taxaAthlos = associado.taxaAthlos;
+    dto.cargoId = associado.cargoId ?? null;
     dto.createdAt = associado.createdAt!;
     dto.updatedAt = associado.updatedAt!;
     return dto;
