@@ -96,17 +96,18 @@ Todos os endpoints exigem `Authorization: Bearer <token>`.
 
 ### Associados
 
-| Método | Rota | Permissão | Descrição |
-|--------|------|-----------|-----------|
-| `GET` | `/v1/associados?_page=1&_size=10` | `associados:read` | Listar paginado |
-| `GET` | `/v1/associados/:id` | `associados:read` | Buscar por ID |
-| `GET` | `/v1/associados/atletica/:atleticaId` | `associados:read` | Listar por Atlética |
-| `POST` | `/v1/associados` | `associados:write` | Cadastrar (calcula taxa 0,5% automaticamente) |
-| `PUT` | `/v1/associados/:id` | `associados:write` | Atualizar dados |
-| `PATCH` | `/v1/associados/:id/status` | `associados:write` | Ativar / Inativar |
-| `DELETE` | `/v1/associados/:id` | `associados:delete` | Remover |
+| Método   | Rota                                        | Permissão            | Descrição                                      |
+|----------|---------------------------------------------|----------------------|------------------------------------------------|
+| `GET`    | `/v1/associados?_page=1&_size=10`           | `associados:read`    | Listar paginado                                |
+| `GET`    | `/v1/associados/:id`                        | `associados:read`    | Buscar por ID                                  |
+| `GET`    | `/v1/associados/atletica/:atleticaId`       | `associados:read`    | Listar por Atlética                            |
+| `POST`   | `/v1/associados`                            | `associados:write`   | Cadastrar (calcula taxa 0,5% automaticamente)  |
+| `PUT`    | `/v1/associados/:id`                        | `associados:write`   | Atualizar dados                                |
+| `PATCH`  | `/v1/associados/:id/status`                 | `associados:write`   | Ativar / Inativar                              |
+| `PATCH`  | `/v1/associados/:id/cargo`                  | `associados:write`   | Atribuir ou remover cargo do associado         |
+| `DELETE` | `/v1/associados/:id`                        | `associados:delete`  | Remover                                        |
 
-### Exemplo de criação
+**Exemplo — Criar associado:**
 
 ```json
 POST /v1/associados
@@ -120,7 +121,116 @@ POST /v1/associados
 }
 ```
 
-> O campo `taxaAthlos` será calculado automaticamente: `500 × 0,5% = R$ 2,50` (RF08)
+> O campo `taxaAthlos` é calculado automaticamente: `500 × 0,5% = R$ 2,50` (RF08)
+
+**Exemplo — Atribuir cargo:**
+
+```json
+PATCH /v1/associados/:id/cargo
+{
+  "cargoId": "uuid-do-cargo"
+}
+```
+
+### Cargos (Hierarquia)
+
+| Método   | Rota                                        | Permissão        | Descrição                     |
+|----------|---------------------------------------------|------------------|-------------------------------|
+| `GET`    | `/v1/cargos?_page=1&_size=10`               | `cargos:read`    | Listar paginado               |
+| `GET`    | `/v1/cargos/:id`                            | `cargos:read`    | Buscar por ID                 |
+| `GET`    | `/v1/cargos/atletica/:atleticaId`           | `cargos:read`    | Listar cargos de uma Atlética |
+| `POST`   | `/v1/cargos`                                | `cargos:write`   | Criar cargo                   |
+| `PUT`    | `/v1/cargos/:id`                            | `cargos:write`   | Atualizar cargo               |
+| `DELETE` | `/v1/cargos/:id`                            | `cargos:delete`  | Remover cargo                 |
+
+---
+
+## Endpoints — Microsserviço de Identidade (porta 4002)
+
+### Autenticação
+
+| Método  | Rota               | Auth    | Descrição                              |
+|---------|--------------------|---------|----------------------------------------|
+| `POST`  | `/v1/auth/login`   | Pública | Autenticar e obter access + refresh token |
+| `POST`  | `/v1/auth/refresh` | Pública | Renovar access token via refresh token |
+| `POST`  | `/v1/auth/logout`  | Pública | Revogar refresh token (logout)         |
+
+**Exemplo — Login:**
+
+```json
+POST /v1/auth/login
+{
+  "email": "admin@atletica.com",
+  "senha": "sua-senha"
+}
+```
+
+**Resposta:**
+
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5...",
+  "refreshToken": "uuid-do-refresh-token"
+}
+```
+
+### Usuários
+
+| Método   | Rota                                        | Permissão      | Descrição                     |
+|----------|---------------------------------------------|----------------|-------------------------------|
+| `GET`    | `/v1/usuarios?_page=1&_size=10`             | `users:read`   | Listar paginado               |
+| `GET`    | `/v1/usuarios/:id`                          | `users:read`   | Buscar por ID                 |
+| `GET`    | `/v1/usuarios/atletica/:atleticaId`         | `users:read`   | Listar usuários de uma Atlética |
+| `POST`   | `/v1/usuarios`                              | `users:write`  | Criar usuário                 |
+| `PUT`    | `/v1/usuarios/:id`                          | `users:write`  | Atualizar usuário             |
+| `PATCH`  | `/v1/usuarios/:id/status`                   | `users:write`  | Ativar / Inativar usuário     |
+| `DELETE` | `/v1/usuarios/:id`                          | `users:delete` | Remover usuário               |
+
+---
+
+## Endpoints — Microsserviço User-Auth (porta 4007)
+
+> Serviço legado de autenticação e gestão de usuários com suporte a HATEOAS.
+
+### Autenticação
+
+| Método | Rota             | Auth    | Descrição              |
+|--------|------------------|---------|------------------------|
+| `POST` | `/v1/auth/login` | Pública | Autenticar via JWT     |
+
+### Usuários
+
+| Método   | Rota                                  | Auth    | Descrição                           |
+|----------|---------------------------------------|---------|-------------------------------------|
+| `GET`    | `/v1/users?_page=1&_size=10`          | Pública | Listar paginado (com links HATEOAS) |
+| `GET`    | `/v1/users/:id`                       | Pública | Buscar por ID (com links HATEOAS)   |
+| `POST`   | `/v1/users`                           | Pública | Criar usuário                       |
+| `PUT`    | `/v1/users/:id`                       | Pública | Atualizar usuário                   |
+| `DELETE` | `/v1/users/:id`                       | Pública | Remover usuário                     |
+
+> As rotas do serviço `user-auth` retornam links HATEOAS (`_links`) nas respostas de listagem e detalhe.
+
+---
+
+## Mensageria — Eventos RabbitMQ
+
+### Eventos do Microsserviço de Associação
+
+| Exchange                                       | Routing Key               | Descrição                          |
+|------------------------------------------------|---------------------------|------------------------------------|
+| `associacao.associados.created.exchange`       | `associado.created`       | Novo associado cadastrado          |
+| `associacao.associados.updated.exchange`       | `associado.updated`       | Dados do associado atualizados     |
+| `associacao.associados.deleted.exchange`       | `associado.deleted`       | Associado removido                 |
+| `associacao.associados.status-changed.exchange`| `associado.status-changed`| Status do associado alterado       |
+
+### Eventos do Microsserviço de Identidade
+
+| Exchange                                       | Routing Key               | Descrição                          |
+|------------------------------------------------|---------------------------|------------------------------------|
+| `identidade.usuarios.created.exchange`         | `usuario.created`         | Novo usuário cadastrado            |
+| `identidade.usuarios.updated.exchange`         | `usuario.updated`         | Dados do usuário atualizados       |
+| `identidade.usuarios.deleted.exchange`         | `usuario.deleted`         | Usuário removido                   |
+| `identidade.usuarios.status-changed.exchange`  | `usuario.status-changed`  | Status do usuário alterado         |
 
 ---
 
@@ -206,6 +316,8 @@ docker compose up --build user-auth
 # Ver logs em tempo real
 docker compose logs -f user-auth
 docker compose logs -f associacao
+docker compose logs -f identidade
+docker compose logs -f user-auth
 
 # Recriar banco do zero (apaga todos os dados)
 docker compose down -v && docker compose up --build
