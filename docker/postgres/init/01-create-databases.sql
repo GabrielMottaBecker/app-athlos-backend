@@ -17,3 +17,8 @@ SELECT 'CREATE DATABASE athlos_feed'
 WHERE NOT EXISTS (
   SELECT FROM pg_database WHERE datname = 'athlos_feed'
 )\gexec
+
+SELECT 'CREATE DATABASE athlos_notificacoes'
+WHERE NOT EXISTS (
+  SELECT FROM pg_database WHERE datname = 'athlos_notificacoes'
+)\gexec

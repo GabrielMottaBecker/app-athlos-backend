@@ -11,4 +11,7 @@ export enum Permission {
   EVENTOS_READ = "eventos:read",
   EVENTOS_WRITE = "eventos:write",
   EVENTOS_DELETE = "eventos:delete",
+  NOTIFICACOES_READ = "notificacoes:read",
+  NOTIFICACOES_WRITE = "notificacoes:write",
+  NOTIFICACOES_DELETE = "notificacoes:delete",
 }

@@ -5,9 +5,11 @@
     "start:associacao": "npm run start:dev --prefix services/associacao",
     "start:identidade": "npm run start:dev --prefix services/identidade",
     "start:feed": "npm run start:dev --prefix services/feed",
+    "start:notificacoes": "npm run start:dev --prefix services/notificacoes",
     "typecheck:associacao": "npm run typecheck --prefix services/associacao",
     "typecheck:identidade": "npm run typecheck --prefix services/identidade",
     "typecheck:feed": "npm run typecheck --prefix services/feed",
+    "typecheck:notificacoes": "npm run typecheck --prefix services/notificacoes",
     "lint:associacao": "npm run lint --prefix services/associacao"
   },
   "devDependencies": {

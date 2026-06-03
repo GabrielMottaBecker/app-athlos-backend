@@ -10,19 +10,24 @@ import { and, eq, sql } from "drizzle-orm";
 export class DrizzleEventoRepository implements EventoRepository {
   constructor(private readonly drizzleService: DrizzleService) {}
 
-  async create(evento: Evento): Promise<void> {
-    await this.drizzleService.db.insert(eventosSchema).values({
-      title: evento.title,
-      date: evento.date,
-      type: evento.type,
-      typeColor: evento.typeColor,
-      time: evento.time,
-      place: evento.place,
-      bgColor: evento.bgColor,
-      atleticaId: evento.atleticaId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+  async create(evento: Evento): Promise<Evento | null> {
+    const [row] = await this.drizzleService.db
+      .insert(eventosSchema)
+      .values({
+        title: evento.title,
+        date: evento.date,
+        type: evento.type,
+        typeColor: evento.typeColor,
+        time: evento.time,
+        place: evento.place,
+        bgColor: evento.bgColor,
+        atleticaId: evento.atleticaId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+
+    return this.toEntity(row);
   }
 
   async update(evento: Evento): Promise<void> {

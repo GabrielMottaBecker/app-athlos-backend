@@ -1,6 +1,7 @@
 import { ConfirmarPresencaEventoDto } from "@feed/eventos/application/dto/confirmar-presenca-evento.dto";
 import { CreateEventoDto } from "@feed/eventos/application/dto/create-evento.dto";
 import { EventoDto } from "@feed/eventos/application/dto/evento.dto";
+import { EventoMessagingService } from "@feed/eventos/application/services/evento-messaging.service";
 import { UpdateEventoDto } from "@feed/eventos/application/dto/update-evento.dto";
 import { Evento, TipoEvento } from "@feed/eventos/domain/models/evento.entity";
 import { PresencaEvento, StatusPresencaEvento } from "@feed/eventos/domain/models/presenca-evento.entity";
@@ -27,6 +28,7 @@ export class EventoService {
     private readonly eventoRepository: EventoRepository,
     @Inject(PRESENCA_EVENTO_REPOSITORY)
     private readonly presencaRepository: PresencaEventoRepository,
+    private readonly messagingService: EventoMessagingService,
   ) {}
 
   async create(dto: CreateEventoDto): Promise<void> {
@@ -41,7 +43,13 @@ export class EventoService {
       atleticaId: dto.atleticaId,
     })!;
 
-    await this.eventoRepository.create(evento);
+    const eventoCriado = await this.eventoRepository.create(evento);
+
+    if (eventoCriado) {
+      await this.messagingService.publishEventoCreated(
+        EventoDto.fromEvento(eventoCriado)!,
+      );
+    }
   }
 
   async edit(id: string, dto: UpdateEventoDto): Promise<void> {
@@ -57,6 +65,9 @@ export class EventoService {
     if (dto.bgColor !== undefined) evento.withBgColor(dto.bgColor);
 
     await this.eventoRepository.update(evento);
+    await this.messagingService.publishEventoUpdated(
+      EventoDto.fromEvento(evento)!,
+    );
   }
 
   async remove(id: string): Promise<void> {
@@ -64,6 +75,9 @@ export class EventoService {
     if (!evento) throw new NotFoundException("Evento nao encontrado");
 
     await this.eventoRepository.delete(id);
+    await this.messagingService.publishEventoDeleted(
+      EventoDto.fromEvento(evento)!,
+    );
   }
 
   async listPaginated(params: PaginationParams): Promise<PaginatedResult<EventoDto>> {

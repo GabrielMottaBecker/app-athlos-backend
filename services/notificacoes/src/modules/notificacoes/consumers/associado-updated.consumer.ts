@@ -1,0 +1,80 @@
+import { CreateNotificacaoDto } from "@notificacoes/notificacoes/application/dto/create-notificacao.dto";
+import { NotificacaoService } from "@notificacoes/notificacoes/application/services/notificacao.service";
+import { NotificacaoTipo } from "@notificacoes/notificacoes/domain/models/notificacao-tipo.enum";
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import {
+  AssociacaoExchangeName,
+  AssociacaoRoutingKey,
+} from "@shared/contracts/events/associacao-events.enum";
+import { RabbitMQService } from "@shared/infra/messaging/rabbitmq.service";
+import type { ConsumeMessage } from "amqplib";
+
+const QUEUE_NAME = "notificacoes.associados.updated";
+
+type AssociadoUpdatedPayload = {
+  id: string;
+  atleticaId: string;
+};
+
+@Injectable()
+export class AssociadoUpdatedConsumer implements OnModuleInit {
+  private readonly logger = new Logger(AssociadoUpdatedConsumer.name);
+
+  constructor(
+    private readonly rabbitMQService: RabbitMQService,
+    private readonly notificacaoService: NotificacaoService,
+  ) {}
+
+  async onModuleInit(): Promise<void> {
+    try {
+      const channel = this.rabbitMQService.getChannel();
+      await channel.assertExchange(AssociacaoExchangeName.ASSOCIADO_UPDATED, "direct", { durable: true });
+      await channel.assertQueue(QUEUE_NAME, { durable: true });
+      await channel.bindQueue(
+        QUEUE_NAME,
+        AssociacaoExchangeName.ASSOCIADO_UPDATED,
+        AssociacaoRoutingKey.ASSOCIADO_UPDATED,
+      );
+
+      channel.consume(QUEUE_NAME, async (msg) => {
+        if (!msg) return;
+        await this.handleMessage(msg);
+      });
+
+      this.logger.log(`Listening for associado updates on queue "${QUEUE_NAME}"`);
+    } catch {
+      this.logger.warn(
+        "RabbitMQ unavailable; associado update notification consumer disabled.",
+      );
+    }
+  }
+
+  private async handleMessage(msg: ConsumeMessage): Promise<void> {
+    const channel = this.rabbitMQService.getChannel();
+    try {
+      const payload = JSON.parse(msg.content.toString()) as AssociadoUpdatedPayload;
+      if (!payload.id || !payload.atleticaId) {
+        channel.nack(msg, false, false);
+        return;
+      }
+
+      const dto: CreateNotificacaoDto = {
+        usuarioId: payload.id,
+        atleticaId: payload.atleticaId,
+        tipo: NotificacaoTipo.ASSOCIACAO_ATUALIZADA,
+        titulo: "Cadastro atualizado",
+        mensagem: "Suas informacoes de associacao foram atualizadas.",
+        metadata: {
+          associadoId: payload.id,
+        },
+      };
+
+      await this.notificacaoService.create(dto);
+      channel.ack(msg);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      this.logger.warn(`Falha ao processar atualizacao de associado: ${message}`);
+      channel.nack(msg, false, false);
+    }
+  }
+}

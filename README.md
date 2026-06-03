@@ -32,6 +32,8 @@ Aguarde os healthchecks passarem (≈ 30s). Depois acesse:
 | **Swagger (docs)**   | http://localhost:4002/docs                    |
 | **Feed API**         | http://localhost:4003                         |
 | **Swagger (docs)**   | http://localhost:4003/docs                    |
+| **Notificações API** | http://localhost:4006                         |
+| **Swagger (docs)**   | http://localhost:4006/docs                    |
 | **User-Auth API**    | http://localhost:4007                         |
 | **Swagger (docs)**   | http://localhost:4007/docs                    |
 | **Adminer (DB)**     | http://localhost:8080                         |
@@ -51,24 +53,28 @@ docker compose up -d postgres rabbitmq
 cp services/associacao/.env.example services/associacao/.env
 cp services/identidade/.env.example services/identidade/.env
 cp services/feed/.env.example services/feed/.env
+cp services/notificacoes/.env.example services/notificacoes/.env
 cp services/user-auth/.env.example services/user-auth/.env
 
 # 3. Instala dependências
 npm install --prefix services/associacao
 npm install --prefix services/identidade
 npm install --prefix services/feed
+npm install --prefix services/notificacoes
 npm install --prefix services/user-auth
 
 # 4. Roda as migrations
 cd services/associacao && npx drizzle-kit migrate && cd ../..
 cd services/identidade && npx drizzle-kit migrate && cd ../..
 cd services/feed       && npx drizzle-kit migrate && cd ../..
+cd services/notificacoes && npx drizzle-kit migrate && cd ../..
 cd services/user-auth  && npx drizzle-kit migrate && cd ../..
 
 # 5. Sobe os serviços em watch mode (em terminais separados)
 npm run start:associacao
 npm run start:identidade
 npm run start:feed
+npm run start:notificacoes
 npm run start:user-auth
 ```
 
@@ -81,7 +87,7 @@ athlos/
 ├── docker/
 │   └── postgres/
 │       └── init/
-│           └── 01-create-databases.sql     # Criação dos bancos (athlos_associacao, athlos_identidade, athlos_feed, athlos_user_auth)
+│           └── 01-create-databases.sql     # Criação dos bancos (athlos_associacao, athlos_identidade, athlos_feed, athlos_notificacoes, athlos_user_auth)
 ├── shared/
 │   └── src/
 │       ├── contracts/
@@ -280,6 +286,9 @@ O `accessToken` é um JWT assinado com o secret `JWT_SECRET` contendo:
 | `eventos:read`      | Visualizar eventos e confirmar presenca |
 | `eventos:write`     | Criar e editar eventos             |
 | `eventos:delete`    | Remover eventos                    |
+| `notificacoes:read` | Visualizar notificações e gerenciar device tokens |
+| `notificacoes:write`| Criar notificações manuais         |
+| `notificacoes:delete`| Remover notificações               |
 | `users:read`        | Visualizar usuários do sistema     |
 | `users:write`       | Criar e editar usuários do sistema |
 | `users:delete`      | Remover usuários do sistema        |
@@ -416,6 +425,37 @@ POST /v1/eventos
 
 ---
 
+## Endpoints — Microsserviço de Notificações (porta 4006)
+
+### Inbox
+
+| Método  | Rota                                      | Permissão             | Descrição                              |
+|---------|-------------------------------------------|-----------------------|----------------------------------------|
+| `GET`   | `/v1/notificacoes?_page=1&_size=10`       | `notificacoes:read`   | Listar inbox do usuário autenticado    |
+| `GET`   | `/v1/notificacoes/nao-lidas/count`        | `notificacoes:read`   | Contar notificações não lidas          |
+| `POST`  | `/v1/notificacoes`                        | `notificacoes:write`  | Criar notificação manual               |
+| `PATCH` | `/v1/notificacoes/:id/lida`               | `notificacoes:read`   | Marcar uma notificação como lida       |
+| `PATCH` | `/v1/notificacoes/lidas`                  | `notificacoes:read`   | Marcar todas como lidas                |
+
+### Device Tokens
+
+| Método   | Rota                         | Permissão             | Descrição                           |
+|----------|------------------------------|-----------------------|-------------------------------------|
+| `POST`   | `/v1/device-tokens`          | `notificacoes:read`   | Registrar ou reativar token         |
+| `DELETE` | `/v1/device-tokens/:token`   | `notificacoes:read`   | Desativar token do dispositivo      |
+
+**Exemplo — Registrar device token:**
+
+```json
+POST /v1/device-tokens
+{
+  "token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]",
+  "platform": "ANDROID"
+}
+```
+
+---
+
 ## Endpoints — Microsserviço User-Auth (porta 4007)
 
 > Serviço legado de autenticação e gestão de usuários com suporte a HATEOAS.
@@ -460,6 +500,22 @@ POST /v1/eventos
 | `identidade.usuarios.deleted.exchange`         | `usuario.deleted`         | Usuário removido                   |
 | `identidade.usuarios.status-changed.exchange`  | `usuario.status-changed`  | Status do usuário alterado         |
 
+### Eventos do Microsserviço de Feed
+
+| Exchange                         | Routing Key      | Descrição                         |
+|----------------------------------|------------------|-----------------------------------|
+| `feed.eventos.created.exchange`  | `evento.created` | Novo evento ou treino publicado   |
+| `feed.eventos.updated.exchange`  | `evento.updated` | Evento ou treino atualizado       |
+| `feed.eventos.deleted.exchange`  | `evento.deleted` | Evento ou treino removido         |
+
+### Consumers do Microsserviço de Notificações
+
+| Queue                                      | Exchange                                       | Descrição                                  |
+|--------------------------------------------|------------------------------------------------|--------------------------------------------|
+| `notificacoes.feed.eventos.created`        | `feed.eventos.created.exchange`                | Gera notificação coletiva de novo evento   |
+| `notificacoes.associados.status-changed`   | `associacao.associados.status-changed.exchange`| Gera notificação de status da associação   |
+| `notificacoes.associados.updated`          | `associacao.associados.updated.exchange`       | Gera notificação de cadastro atualizado    |
+
 ---
 
 ## Microsserviços planejados (Context Map)
@@ -472,7 +528,7 @@ POST /v1/eventos
 | `feed`           | 4003  | Eventos e treinos (Supporting A)         | ✅ Implementado |
 | `financeiro`     | 4004  | Controle financeiro (Supporting B)       | 🔜 Planejado    |
 | `lojinha`        | 4005  | Loja atlética (Supporting B)             | 🔜 Planejado    |
-| `notificacoes`   | 4006  | Notificações push (Generic)              | 🔜 Planejado    |
+| `notificacoes`   | 4006  | Notificações push (Generic)              | ✅ Implementado |
 
 ---
 
@@ -483,12 +539,14 @@ POST /v1/eventos
 docker compose up --build associacao
 docker compose up --build identidade
 docker compose up --build feed
+docker compose up --build notificacoes
 docker compose up --build user-auth
 
 # Ver logs em tempo real
 docker compose logs -f associacao
 docker compose logs -f identidade
 docker compose logs -f feed
+docker compose logs -f notificacoes
 docker compose logs -f user-auth
 
 # Recriar banco do zero
@@ -498,5 +556,6 @@ docker compose down -v && docker compose up --build
 docker compose exec postgres psql -U postgres -d athlos_associacao
 docker compose exec postgres psql -U postgres -d athlos_identidade
 docker compose exec postgres psql -U postgres -d athlos_feed
+docker compose exec postgres psql -U postgres -d athlos_notificacoes
 docker compose exec postgres psql -U postgres -d athlos_user_auth
 ```

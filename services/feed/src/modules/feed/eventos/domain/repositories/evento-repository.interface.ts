@@ -4,7 +4,7 @@ import type { PaginationParams } from "@shared/infra/hateoas";
 export const EVENTO_REPOSITORY = Symbol("EVENTO_REPOSITORY");
 
 export interface EventoRepository {
-  create(evento: Evento): Promise<void>;
+  create(evento: Evento): Promise<Evento | null>;
   update(evento: Evento): Promise<void>;
   delete(id: string): Promise<void>;
   findById(id: string): Promise<Evento | null>;
