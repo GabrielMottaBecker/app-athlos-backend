@@ -32,10 +32,18 @@ const ROLE_PERMISSIONS: Record<UsuarioRole, Permission[]> = {
     Permission.CARGOS_READ,
     Permission.CARGOS_WRITE,
     Permission.CARGOS_DELETE,
+    Permission.EVENTOS_READ,
+    Permission.EVENTOS_WRITE,
+    Permission.EVENTOS_DELETE,
+    Permission.NOTIFICACOES_READ,
+    Permission.NOTIFICACOES_WRITE,
+    Permission.NOTIFICACOES_DELETE,
   ],
   [UsuarioRole.MEMBRO]: [
     Permission.ASSOCIADOS_READ,
     Permission.CARGOS_READ,
+    Permission.EVENTOS_READ,
+    Permission.NOTIFICACOES_READ,
   ],
 };
 
