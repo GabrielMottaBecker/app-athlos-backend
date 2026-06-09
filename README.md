@@ -24,30 +24,22 @@ docker compose up --build
 
 Aguarde os healthchecks passarem (≈ 30s). Depois acesse:
 
-| Serviço              | URL                                           |
-|----------------------|-----------------------------------------------|
-| **Associação API**   | http://localhost:4001                         |
-| **Swagger (docs)**   | http://localhost:4001/docs                    |
-| **Identidade API**   | http://localhost:4002                         |
-| **Swagger (docs)**   | http://localhost:4002/docs                    |
-| **Feed API**         | http://localhost:4003                         |
-| **Swagger (docs)**   | http://localhost:4003/docs                    |
-| **Notificações API** | http://localhost:4006                         |
-| **Swagger (docs)**   | http://localhost:4006/docs                    |
-| **User-Auth API**    | http://localhost:4007                         |
-| **Swagger (docs)**   | http://localhost:4007/docs                    |
-| **Adminer (DB)**     | http://localhost:8080                         |
-| **RabbitMQ UI**      | http://localhost:15672 (admin / admin)        |
+| Serviço | URL |
+|---------|-----|
+| **Associação API** | http://localhost:4001 |
+| **Swagger — Associação** | http://localhost:4001/docs |
+| **User Auth API** | http://localhost:4007 |
+| **Swagger — User Auth** | http://localhost:4007/docs |
+| **Adminer (DB)** | http://localhost:8080 |
+| **RabbitMQ UI** | http://localhost:15672 (admin / admin) |
 
 > As migrations rodam automaticamente antes de cada serviço iniciar.
 
 ---
 
-## Rodar em modo desenvolvimento (sem Docker)
+## Autenticação
 
-```bash
-# 1. Sobe apenas a infraestrutura
-docker compose up -d postgres rabbitmq
+O serviço `user-auth` é responsável por autenticação, geração de JWT e controle de permissões.
 
 # 2. Copia os .env de cada serviço
 cp services/associacao/.env.example services/associacao/.env
@@ -78,7 +70,7 @@ npm run start:notificacoes
 npm run start:user-auth
 ```
 
----
+Retorna:
 
 ## Estrutura do Projeto
 
@@ -249,29 +241,21 @@ athlos/
 └── package.json
 ```
 
----
-
-## Autenticação
-
-Todos os endpoints protegidos exigem `Authorization: Bearer <token>`.
-
-### Fluxo de autenticação (via serviço `identidade`, porta 4002)
+Use o token nos demais endpoints:
 
 ```
-POST /v1/auth/login   → retorna accessToken + refreshToken
-POST /v1/auth/refresh → renova o accessToken usando o refreshToken
-POST /v1/auth/logout  → revoga o refreshToken
+Authorization: Bearer <accessToken>
 ```
 
-O `accessToken` é um JWT assinado com o secret `JWT_SECRET` contendo:
+### Usuário admin padrão
 
-```json
-{
-  "sub": "uuid-do-usuario",
-  "email": "usuario@atletica.com",
-  "permissions": ["associados:read", "associados:write", "cargos:read", ...]
-}
-```
+| Campo | Valor |
+|-------|-------|
+| Email | `admin@school.com` |
+| Senha | `senha123` |
+| Permissões | todas (`associados:*`, `users:*`) |
+
+> Criado automaticamente via migration ao subir o ambiente.
 
 ### Permissões disponíveis
 
@@ -296,6 +280,8 @@ O `accessToken` é um JWT assinado com o secret `JWT_SECRET` contendo:
 ---
 
 ## Endpoints — Microsserviço de Associação (porta 4001)
+
+Todos os endpoints exigem `Authorization: Bearer <token>`.
 
 ### Associados
 
@@ -518,6 +504,44 @@ POST /v1/device-tokens
 
 ---
 
+## Endpoints — Microsserviço de User Auth (porta 4007)
+
+### Auth
+
+| Método | Rota | Auth | Descrição |
+|--------|------|------|-----------|
+| `POST` | `/v1/auth/login` | Público | Autenticar e obter JWT |
+
+### Usuários
+
+| Método | Rota | Permissão | Descrição |
+|--------|------|-----------|-----------|
+| `GET` | `/v1/users?_page=1&_size=10` | `users:read` | Listar paginado |
+| `GET` | `/v1/users/:id` | `users:read` | Buscar por ID |
+| `POST` | `/v1/users` | `users:write` | Criar usuário |
+| `PUT` | `/v1/users/:id` | `users:write` | Atualizar usuário |
+| `DELETE` | `/v1/users/:id` | `users:delete` | Remover usuário |
+
+---
+
+## Validação de token entre microsserviços (RabbitMQ)
+
+Os microsserviços validam tokens JWT via RabbitMQ RPC, sem chamadas HTTP diretas ao `user-auth`.
+
+**Exchange:** `auth.exchange`  
+**Routing key:** `auth.validate-token`  
+**Payload:** `{ "token": "<jwt>" }`  
+**Resposta:** `{ "valid": true, "sub": "...", "email": "...", "permissions": [...] }` ou `{ "valid": false, "reason": "..." }`
+
+Use o `AuthRpcService` disponível no `SharedModule`:
+
+```typescript
+const user = await this.authRpcService.validateToken(token);
+// lança UnauthorizedException automaticamente se inválido
+```
+
+---
+
 ## Microsserviços planejados (Context Map)
 
 | Serviço          | Porta | Domínio                                  | Status         |
@@ -543,13 +567,14 @@ docker compose up --build notificacoes
 docker compose up --build user-auth
 
 # Ver logs em tempo real
+docker compose logs -f user-auth
 docker compose logs -f associacao
 docker compose logs -f identidade
 docker compose logs -f feed
 docker compose logs -f notificacoes
 docker compose logs -f user-auth
 
-# Recriar banco do zero
+# Recriar banco do zero (apaga todos os dados)
 docker compose down -v && docker compose up --build
 
 # Acessar banco via psql

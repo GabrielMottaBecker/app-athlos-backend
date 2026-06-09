@@ -14,4 +14,10 @@ export enum Permission {
   NOTIFICACOES_READ = "notificacoes:read",
   NOTIFICACOES_WRITE = "notificacoes:write",
   NOTIFICACOES_DELETE = "notificacoes:delete",
+  FINANCEIRO_READ = "financeiro:read",
+  FINANCEIRO_WRITE = "financeiro:write",
+  FINANCEIRO_DELETE = "financeiro:delete",
+  LOJINHA_READ = "lojinha:read",
+  LOJINHA_WRITE = "lojinha:write",
+  LOJINHA_DELETE = "lojinha:delete",
 }

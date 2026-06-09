@@ -5,9 +5,7 @@ import {
   IsEmail,
   IsEnum,
   IsNotEmpty,
-  IsOptional,
   IsString,
-  IsUUID,
 } from "class-validator";
 
 export class CreateUserDto {
@@ -20,16 +18,6 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   password!: string;
-
-  @ApiProperty({ example: "uuid-do-professor", required: false })
-  @IsUUID()
-  @IsOptional()
-  teacherId?: string;
-
-  @ApiProperty({ example: "Maria Souza", required: false })
-  @IsString()
-  @IsOptional()
-  teacherName?: string;
 
   @ApiProperty({
     enum: Permission,

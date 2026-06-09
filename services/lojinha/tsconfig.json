@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "../..",
+    "paths": {
+      "@shared/*": ["../../shared/src/*"],
+      "@lojinha/*": ["./src/modules/lojinha/*"],
+      "@carrinho/*": ["./src/modules/lojinha/carrinho/*"]
+    }
+  },
+  "include": ["./src/**/*.ts", "../../shared/src/**/*.ts"]
+}

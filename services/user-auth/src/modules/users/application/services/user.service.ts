@@ -14,7 +14,7 @@ import {
   USER_REPOSITORY,
   type UserRepository,
 } from "@users/domain/repositories/user-repository.interface";
-import bcrypt from "bcryptjs";
+import * as bcrypt from "bcryptjs";
 
 @Injectable()
 export class UserService {
@@ -85,15 +85,20 @@ export class UserService {
   }
 
   async validateCredentials(
-    email: string,
-    password: string,
-  ): Promise<UserPayload | null> {
-    const user = await this.userRepository.findByEmail(email.toLowerCase());
-    if (!user) return null;
+  email: string,
+  password: string,
+): Promise<UserPayload | null> {
+  const user = await this.userRepository.findByEmail(email.toLowerCase());
+  console.log('user found:', user?.email);
+  console.log('password from db:', user?.password);
+  
+  if (!user) return null;
 
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) return null;
+  const valid = await bcrypt.compare(password, user.password);
+  console.log('bcrypt valid:', valid);
+  
+  if (!valid) return null;
 
-    return { id: user.id!, email: user.email, permissions: user.permissions };
+  return { id: user.id!, email: user.email, permissions: user.permissions };
   }
 }

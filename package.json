@@ -6,10 +6,16 @@
     "start:identidade": "npm run start:dev --prefix services/identidade",
     "start:feed": "npm run start:dev --prefix services/feed",
     "start:notificacoes": "npm run start:dev --prefix services/notificacoes",
+    "start:user-auth": "npm run start:dev --prefix services/user-auth",
+    "start:financeiro": "npm run start:dev --prefix services/financeiro",
+    "start:lojinha": "npm run start:dev --prefix services/lojinha",
     "typecheck:associacao": "npm run typecheck --prefix services/associacao",
     "typecheck:identidade": "npm run typecheck --prefix services/identidade",
     "typecheck:feed": "npm run typecheck --prefix services/feed",
     "typecheck:notificacoes": "npm run typecheck --prefix services/notificacoes",
+    "typecheck:user-auth": "npm run typecheck --prefix services/user-auth",
+    "typecheck:financeiro": "npm run typecheck --prefix services/financeiro",
+    "typecheck:lojinha": "npm run typecheck --prefix services/lojinha",
     "lint:associacao": "npm run lint --prefix services/associacao"
   },
   "devDependencies": {
