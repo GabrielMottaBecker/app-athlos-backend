@@ -8,7 +8,6 @@ import {
   Body,
   Controller,
   DefaultValuePipe,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -81,7 +80,7 @@ export class AssociadosController {
     @Body() body: UpdateAssociadoDto,
   ): Promise<void> {
     return this.associadoService.edit(id, body);
-  }
+  } 
 
   @Patch(":id/status")
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -94,16 +93,6 @@ export class AssociadosController {
     @Body() body: ChangeStatusAssociadoDto,
   ): Promise<void> {
     return this.associadoService.changeStatus(id, body.status);
-  }
-
-  @Delete(":id")
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @RequirePermissions(Permission.ASSOCIADOS_DELETE)
-  @ApiOperation({ summary: "Remover associado" })
-  @ApiNoContentResponse({ description: "Associado removido" })
-  @ApiNotFoundResponse({ description: "Associado não encontrado" })
-  async remove(@Param("id") id: string): Promise<void> {
-    return this.associadoService.remove(id);
   }
 
   @Patch(":id/cargo")

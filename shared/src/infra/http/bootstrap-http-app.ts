@@ -16,6 +16,13 @@ export async function bootstrapHttpApp(
 ): Promise<void> {
   const app = await NestFactory.create(rootModule);
 
+  app.enableCors({
+    origin: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  });
+
   app.setGlobalPrefix(options.globalPrefix ?? "v1");
   app.useGlobalPipes(
     new ValidationPipe({
