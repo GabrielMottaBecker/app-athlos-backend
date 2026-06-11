@@ -20,4 +20,6 @@ export enum Permission {
   LOJINHA_READ = "lojinha:read",
   LOJINHA_WRITE = "lojinha:write",
   LOJINHA_DELETE = "lojinha:delete",
+  ATLETICA_READ  = "atletica:read",
+  ATLETICA_WRITE = "atletica:write",
 }

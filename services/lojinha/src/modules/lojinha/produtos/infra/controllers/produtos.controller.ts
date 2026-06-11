@@ -7,7 +7,6 @@ import {
   Body,
   Controller,
   DefaultValuePipe,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -47,7 +46,6 @@ export class ProdutosController {
       self: { href: `/v1/produtos/${item.id}`, method: "GET" },
       update: { href: `/v1/produtos/${item.id}`, method: "PUT" },
       status: { href: `/v1/produtos/${item.id}/status`, method: "PATCH" },
-      delete: { href: `/v1/produtos/${item.id}`, method: "DELETE" },
     }),
   })
   async findAll(
@@ -74,7 +72,6 @@ export class ProdutosController {
       self: { href: `/v1/produtos/${item.id}`, method: "GET" },
       update: { href: `/v1/produtos/${item.id}`, method: "PUT" },
       status: { href: `/v1/produtos/${item.id}/status`, method: "PATCH" },
-      delete: { href: `/v1/produtos/${item.id}`, method: "DELETE" },
       list: { href: "/v1/produtos", method: "GET" },
     }),
   })
@@ -112,13 +109,4 @@ export class ProdutosController {
     return this.produtoService.changeStatus(id, body.status);
   }
 
-  @Delete(":id")
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @RequirePermissions(Permission.LOJINHA_DELETE)
-  @ApiOperation({ summary: "Remover produto" })
-  @ApiNoContentResponse({ description: "Produto removido" })
-  @ApiNotFoundResponse({ description: "Produto não encontrado" })
-  async remove(@Param("id") id: string): Promise<void> {
-    return this.produtoService.remove(id);
-  }
 }

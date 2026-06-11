@@ -6,7 +6,6 @@ import {
   Body,
   Controller,
   DefaultValuePipe,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -44,7 +43,6 @@ export class TransacoesController {
     itemLinks: (item) => ({
       self: { href: `/v1/transacoes/${item.id}`, method: "GET" },
       update: { href: `/v1/transacoes/${item.id}`, method: "PUT" },
-      delete: { href: `/v1/transacoes/${item.id}`, method: "DELETE" },
       categoria: { href: `/v1/categorias/${item.categoriaId}`, method: "GET" },
     }),
   })
@@ -71,7 +69,6 @@ export class TransacoesController {
     itemLinks: (item) => ({
       self: { href: `/v1/transacoes/${item.id}`, method: "GET" },
       update: { href: `/v1/transacoes/${item.id}`, method: "PUT" },
-      delete: { href: `/v1/transacoes/${item.id}`, method: "DELETE" },
       categoria: { href: `/v1/categorias/${item.categoriaId}`, method: "GET" },
       list: { href: "/v1/transacoes", method: "GET" },
     }),
@@ -95,15 +92,5 @@ export class TransacoesController {
   @ApiNotFoundResponse({ description: "Transação não encontrada" })
   async update(@Param("id") id: string, @Body() body: UpdateTransacaoDto): Promise<void> {
     return this.transacaoService.edit(id, body);
-  }
-
-  @Delete(":id")
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @RequirePermissions(Permission.FINANCEIRO_DELETE)
-  @ApiOperation({ summary: "Remover transação" })
-  @ApiNoContentResponse({ description: "Transação removida" })
-  @ApiNotFoundResponse({ description: "Transação não encontrada" })
-  async remove(@Param("id") id: string): Promise<void> {
-    return this.transacaoService.remove(id);
   }
 }

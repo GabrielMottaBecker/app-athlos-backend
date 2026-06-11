@@ -7,7 +7,6 @@ import {
   Body,
   Controller,
   DefaultValuePipe,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -15,7 +14,6 @@ import {
   ParseIntPipe,
   Patch,
   Post,
-  Put,
   Query,
 } from "@nestjs/common";
 import {
@@ -69,7 +67,7 @@ export class UsuariosController {
     return this.usuarioService.create(body);
   }
 
-  @Put(":id")
+  @Patch(":id")         
   @HttpCode(HttpStatus.NO_CONTENT)
   @RequirePermissions(Permission.USERS_WRITE)
   @ApiOperation({ summary: "Atualizar usuário" })
@@ -93,15 +91,5 @@ export class UsuariosController {
     @Body() body: ChangeStatusUsuarioDto,
   ): Promise<void> {
     return this.usuarioService.changeStatus(id, body.status);
-  }
-
-  @Delete(":id")
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @RequirePermissions(Permission.USERS_DELETE)
-  @ApiOperation({ summary: "Remover usuário" })
-  @ApiNoContentResponse({ description: "Usuário removido" })
-  @ApiNotFoundResponse({ description: "Usuário não encontrado" })
-  async remove(@Param("id") id: string): Promise<void> {
-    return this.usuarioService.remove(id);
   }
 }

@@ -6,7 +6,6 @@ import {
   Body,
   Controller,
   DefaultValuePipe,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -80,13 +79,4 @@ export class CargosController {
     return this.cargoService.edit(id, body);
   }
 
-  @Delete(":id")
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @RequirePermissions(Permission.CARGOS_DELETE)
-  @ApiOperation({ summary: "Remover cargo" })
-  @ApiNoContentResponse({ description: "Cargo removido" })
-  @ApiNotFoundResponse({ description: "Cargo não encontrado" })
-  async remove(@Param("id") id: string): Promise<void> {
-    return this.cargoService.remove(id);
-  }
 }
