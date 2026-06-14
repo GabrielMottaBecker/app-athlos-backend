@@ -1,5 +1,5 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsNotEmpty, IsNumber, IsString, IsUUID, Min } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from "class-validator";
 
 export class CreateAssociadoDto {
   @ApiProperty({ example: "João Silva" })
@@ -22,13 +22,18 @@ export class CreateAssociadoDto {
   @IsNotEmpty()
   telefone!: string;
 
-  @ApiProperty({ example: "uuid-atletica", description: "ID da Atlética" })
+  @ApiProperty({ example: "uuid-atletica" })
   @IsUUID()
   @IsNotEmpty()
   atleticaId!: string;
 
-  @ApiProperty({ example: 500, description: "Valor da mensalidade de associação (a taxa de 0,5% será calculada automaticamente)" })
+  @ApiProperty({ example: 500 })
   @IsNumber()
   @Min(0)
   valorAssociacao!: number;
+
+  @ApiPropertyOptional({ example: "uuid-cargo" })
+  @IsUUID()
+  @IsOptional()
+  cargoId?: string;
 }

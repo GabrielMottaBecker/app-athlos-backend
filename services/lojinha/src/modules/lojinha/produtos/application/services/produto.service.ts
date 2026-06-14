@@ -31,11 +31,6 @@ export class ProdutoService {
     })!;
 
     await this.produtoRepository.create(produto);
-
-    const criado = await this.produtoRepository.findById(produto.id ?? "");
-    if (criado) {
-      await this.messagingService.publishProdutoCreated(ProdutoDto.fromProduto(criado)!);
-    }
   }
 
   async edit(id: string, dto: UpdateProdutoDto): Promise<void> {
