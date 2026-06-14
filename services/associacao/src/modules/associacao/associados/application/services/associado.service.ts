@@ -52,6 +52,11 @@ export class AssociadoService {
     const criado = await this.associadoRepository.findByEmail(dto.email);
     if (!criado) throw new NotFoundException("Associado criado não encontrado");
 
+    // Atribui cargo se informado
+    if (dto.cargoId && criado.id) {
+      await this.associadoRepository.assignCargo(criado.id, dto.cargoId);
+    }
+
     await this.messagingService.publishAssociadoCreated(
       AssociadoDto.fromAssociado(criado)!,
     );
