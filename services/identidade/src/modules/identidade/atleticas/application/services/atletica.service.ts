@@ -64,4 +64,12 @@ export class AtleticaService {
       criadoEm: row.criadoEm.toISOString(),
     };
   }
+
+  async findAll(): Promise<AtleticaDto[]> {
+    const rows = await this.drizzle.db
+      .select()
+      .from(atleticasTable);
+
+    return rows.map((row) => this.toDto(row));
+  }
 }

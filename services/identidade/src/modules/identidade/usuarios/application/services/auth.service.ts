@@ -22,13 +22,27 @@ import * as bcrypt from "bcrypt";
 import { randomUUID } from "crypto";
 
 const ROLE_PERMISSIONS: Record<UsuarioRole, Permission[]> = {
-  [UsuarioRole.ADMINISTRADOR]: [
-    Permission.ASSOCIADOS_READ,
-    Permission.ASSOCIADOS_WRITE,
+  [UsuarioRole.SUPER_ADMIN]: [
+    Permission.SUPER_ADMIN,
+    Permission.ATLETICA_READ,
+    Permission.ATLETICA_WRITE,
     Permission.USERS_READ,
     Permission.USERS_WRITE,
+    Permission.ASSOCIADOS_READ,
+    Permission.CARGOS_READ,
+  ],
+  [UsuarioRole.ADMINISTRADOR]: [
+    Permission.ATLETICA_READ,
+    Permission.ATLETICA_WRITE,
+    Permission.ASSOCIADOS_READ,
+    Permission.ASSOCIADOS_WRITE,
+    Permission.ASSOCIADOS_DELETE,
+    Permission.USERS_READ,
+    Permission.USERS_WRITE,
+    Permission.USERS_DELETE,
     Permission.CARGOS_READ,
     Permission.CARGOS_WRITE,
+    Permission.CARGOS_DELETE,
     Permission.EVENTOS_READ,
     Permission.EVENTOS_WRITE,
     Permission.EVENTOS_DELETE,
@@ -38,8 +52,6 @@ const ROLE_PERMISSIONS: Record<UsuarioRole, Permission[]> = {
     Permission.LOJINHA_WRITE,
     Permission.FINANCEIRO_READ,
     Permission.FINANCEIRO_WRITE,
-    Permission.ATLETICA_READ,
-    Permission.ATLETICA_WRITE,
   ],
   [UsuarioRole.MEMBRO]: [
     Permission.ASSOCIADOS_READ,
