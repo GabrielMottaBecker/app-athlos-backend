@@ -1,25 +1,43 @@
 export enum Permission {
-  ASSOCIADOS_READ = "associados:read",
-  ASSOCIADOS_WRITE = "associados:write",
+  // Super Admin
+  SUPER_ADMIN = "super_admin",
+
+  // Associados
+  ASSOCIADOS_READ   = "associados:read",
+  ASSOCIADOS_WRITE  = "associados:write",
   ASSOCIADOS_DELETE = "associados:delete",
-  USERS_READ = "users:read",
-  USERS_WRITE = "users:write",
+
+  // Users
+  USERS_READ   = "users:read",
+  USERS_WRITE  = "users:write",
   USERS_DELETE = "users:delete",
-  CARGOS_READ = "cargos:read",
-  CARGOS_WRITE = "cargos:write",
+
+  // Cargos
+  CARGOS_READ   = "cargos:read",
+  CARGOS_WRITE  = "cargos:write",
   CARGOS_DELETE = "cargos:delete",
-  EVENTOS_READ = "eventos:read",
-  EVENTOS_WRITE = "eventos:write",
+
+  // Eventos
+  EVENTOS_READ   = "eventos:read",
+  EVENTOS_WRITE  = "eventos:write",
   EVENTOS_DELETE = "eventos:delete",
-  NOTIFICACOES_READ = "notificacoes:read",
-  NOTIFICACOES_WRITE = "notificacoes:write",
+
+  // Notificações
+  NOTIFICACOES_READ   = "notificacoes:read",
+  NOTIFICACOES_WRITE  = "notificacoes:write",
   NOTIFICACOES_DELETE = "notificacoes:delete",
-  FINANCEIRO_READ = "financeiro:read",
-  FINANCEIRO_WRITE = "financeiro:write",
+
+  // Financeiro
+  FINANCEIRO_READ   = "financeiro:read",
+  FINANCEIRO_WRITE  = "financeiro:write",
   FINANCEIRO_DELETE = "financeiro:delete",
-  LOJINHA_READ = "lojinha:read",
-  LOJINHA_WRITE = "lojinha:write",
+
+  // Lojinha
+  LOJINHA_READ   = "lojinha:read",
+  LOJINHA_WRITE  = "lojinha:write",
   LOJINHA_DELETE = "lojinha:delete",
+
+  // Atlética
   ATLETICA_READ  = "atletica:read",
   ATLETICA_WRITE = "atletica:write",
 }

@@ -16,6 +16,9 @@ export class AtleticaDto {
   @ApiPropertyOptional()
   corFundo?: string | null;
 
+  @ApiPropertyOptional()
+  logoUrl?: string | null;
+
   @ApiProperty()
   criadoEm!: string;
 }

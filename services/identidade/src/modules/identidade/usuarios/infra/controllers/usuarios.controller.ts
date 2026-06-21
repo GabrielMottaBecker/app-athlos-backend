@@ -2,8 +2,14 @@ import { CreateUsuarioDto } from "@identidade/usuarios/application/dto/create-us
 import { UpdateUsuarioDto } from "@identidade/usuarios/application/dto/update-usuario.dto";
 import { ChangeStatusUsuarioDto } from "@identidade/usuarios/application/dto/change-status-usuario.dto";
 import { UsuarioDto } from "@identidade/usuarios/application/dto/usuario.dto";
+import { UploadFotoUsuarioResponseDto } from "@identidade/usuarios/application/dto/upload-foto-usuario-response.dto";
 import { UsuarioService } from "@identidade/usuarios/application/services/usuario.service";
 import {
+  buildFotoUsuarioUrl,
+  fotoUsuarioMulterOptions,
+} from "@identidade/usuarios/infra/storage/foto-usuario.storage";
+import {
+  BadRequestException,
   Body,
   Controller,
   DefaultValuePipe,
@@ -15,9 +21,13 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import {
   ApiBearerAuth,
+  ApiConsumes,
   ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOperation,
@@ -25,6 +35,8 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { Permission } from "@shared/domain/enums/permission.enum";
+import type { AuthenticatedUser } from "@shared/infra/auth/interfaces/authenticated-user.interface";
+import { CurrentUser } from "@shared/infra/decorators/current-user.decorator";
 import { RequirePermissions } from "@shared/infra/decorators/permissions.decorator";
 
 @ApiTags("usuarios")
@@ -50,6 +62,29 @@ export class UsuariosController {
   @ApiOperation({ summary: "Listar usuários de uma Atlética" })
   async findByAtletica(@Param("atleticaId") atleticaId: string): Promise<UsuarioDto[]> {
     return this.usuarioService.findByAtletica(atleticaId);
+  }
+
+  @Get("me")
+  @ApiOperation({ summary: "Buscar os dados do próprio usuário autenticado" })
+  @ApiNotFoundResponse({ description: "Usuário não encontrado" })
+  async findMe(@CurrentUser() user: AuthenticatedUser): Promise<UsuarioDto | null> {
+    return this.usuarioService.findById(user.sub);
+  }
+
+  @Post("me/foto")
+  @UseInterceptors(FileInterceptor("foto", fotoUsuarioMulterOptions))
+  @ApiOperation({ summary: "Enviar/atualizar a foto de perfil do usuário autenticado" })
+  @ApiConsumes("multipart/form-data")
+  async uploadFotoPerfil(
+    @CurrentUser() user: AuthenticatedUser,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<UploadFotoUsuarioResponseDto> {
+    if (!file) throw new BadRequestException("Nenhum arquivo enviado");
+
+    const fotoUrl = buildFotoUsuarioUrl(file.filename);
+    const usuario = await this.usuarioService.uploadFotoPerfil(user.sub, fotoUrl);
+
+    return { fotoUrl: usuario.fotoUrl ?? fotoUrl };
   }
 
   @Get(":id")

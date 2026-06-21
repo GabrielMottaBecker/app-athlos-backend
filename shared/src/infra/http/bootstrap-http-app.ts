@@ -1,6 +1,8 @@
 import { ValidationPipe, type Type } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
+import { NestExpressApplication } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { join } from "path";
 
 type BootstrapHttpAppOptions = {
   title: string;
@@ -8,13 +10,22 @@ type BootstrapHttpAppOptions = {
   version?: string;
   globalPrefix?: string;
   port?: number | string;
+  /**
+   * Diretório local (relativo ao cwd do processo) que será servido como
+   * arquivos estáticos. Útil para servir uploads (ex.: foto de perfil).
+   * Fica disponível em /<staticAssets.urlPrefix>/<arquivo>.
+   */
+  staticAssets?: {
+    rootPath: string;
+    urlPrefix: string;
+  };
 };
 
 export async function bootstrapHttpApp(
   rootModule: Type<unknown>,
   options: BootstrapHttpAppOptions,
 ): Promise<void> {
-  const app = await NestFactory.create(rootModule);
+  const app = await NestFactory.create<NestExpressApplication>(rootModule);
 
   app.enableCors({
     origin: true,
@@ -22,6 +33,12 @@ export async function bootstrapHttpApp(
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
+
+  if (options.staticAssets) {
+    app.useStaticAssets(join(process.cwd(), options.staticAssets.rootPath), {
+      prefix: options.staticAssets.urlPrefix,
+    });
+  }
 
   app.setGlobalPrefix(options.globalPrefix ?? "v1");
   app.useGlobalPipes(

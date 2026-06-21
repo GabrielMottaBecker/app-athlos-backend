@@ -99,8 +99,14 @@ services:
       JWT_SECRET: athlos-super-secret-change-in-prod
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/athlos_identidade
       RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      # URL pública usada para montar o link da foto de perfil (uploads/usuarios).
+      # Trocar para a URL real do serviço quando for além do ambiente local.
+      PUBLIC_URL: http://localhost:4002
     ports:
       - "4002:4002"
+    volumes:
+      # Persiste as fotos de perfil enviadas pelos usuários entre restarts/rebuilds.
+      - identidade_uploads:/app/services/identidade/uploads
     command: >
       sh -c "
         npx drizzle-kit migrate &&
@@ -210,6 +216,7 @@ services:
 volumes:
   postgres_data:
   rabbitmq_data:
+  identidade_uploads:
 
 networks:
   athlos-network:

@@ -30,11 +30,20 @@ export class AtleticasController {
   constructor(private readonly atleticaService: AtleticaService) {}
 
   @Post()
-  @Public()
-  @ApiOperation({ summary: "Criar atlética (onboarding do presidente)" })
+  @ApiBearerAuth()
+  @RequirePermissions(Permission.SUPER_ADMIN)
+  @ApiOperation({ summary: "Criar atlética (apenas Super Admin Athlos)" })
   @ApiCreatedResponse({ type: AtleticaDto })
   async create(@Body() body: CreateAtleticaDto): Promise<AtleticaDto> {
     return this.atleticaService.create(body);
+  }
+
+  @Get()
+  @ApiBearerAuth()
+  @RequirePermissions(Permission.SUPER_ADMIN)
+  @ApiOperation({ summary: "Listar todas as atléticas (apenas Super Admin)" })
+  async findAll(): Promise<AtleticaDto[]> {
+    return this.atleticaService.findAll();
   }
 
   @Get(":id")
