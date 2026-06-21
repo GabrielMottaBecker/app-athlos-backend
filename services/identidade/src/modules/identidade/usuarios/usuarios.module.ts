@@ -12,7 +12,9 @@ import { UsuariosController } from "@identidade/usuarios/infra/controllers/usuar
 import { AssociadoCreatedConsumer } from "@identidade/usuarios/infra/messaging/associado-created.consumer";
 import { DrizzleRefreshTokenRepository } from "@identidade/usuarios/infra/repositories/drizzle-refresh-token.repository";
 import { DrizzleUsuarioRepository } from "@identidade/usuarios/infra/repositories/drizzle-usuario.repository";
-import { Module } from "@nestjs/common";
+import { FOTO_USUARIO_DEST } from "@identidade/usuarios/infra/storage/foto-usuario.storage";
+import { Module, OnModuleInit } from "@nestjs/common";
+import { mkdirSync } from "fs";
 
 @Module({
   controllers: [AuthController, UsuariosController],
@@ -33,4 +35,9 @@ import { Module } from "@nestjs/common";
     },
   ],
 })
-export class UsuariosModule {}
+export class UsuariosModule implements OnModuleInit {
+  /** Garante que a pasta de uploads exista antes do primeiro upload chegar. */
+  onModuleInit() {
+    mkdirSync(FOTO_USUARIO_DEST, { recursive: true });
+  }
+}

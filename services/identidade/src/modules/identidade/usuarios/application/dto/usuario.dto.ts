@@ -19,6 +19,9 @@ export class UsuarioDto {
   @ApiProperty({ enum: UsuarioStatus, example: UsuarioStatus.ATIVO })
   status!: UsuarioStatus;
 
+  @ApiProperty({ example: "http://localhost:4002/uploads/usuarios/uuid.jpg", nullable: true })
+  fotoUrl?: string | null;
+
   @ApiProperty({ example: "uuid-atletica" })
   atleticaId!: string;
 
@@ -37,6 +40,7 @@ export class UsuarioDto {
     dto.email = usuario.email;
     dto.role = usuario.role;
     dto.status = usuario.status;
+    dto.fotoUrl = usuario.fotoUrl ?? null;
     dto.atleticaId = usuario.atleticaId;
     dto.createdAt = usuario.createdAt!;
     dto.updatedAt = usuario.updatedAt!;

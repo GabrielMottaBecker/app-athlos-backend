@@ -71,6 +71,13 @@ export class DrizzleUsuarioRepository implements UsuarioRepository {
       .where(eq(usuariosSchema.id, usuario.id!));
   }
 
+  async updateFotoUrl(id: string, fotoUrl: string): Promise<void> {
+    await this.drizzleService.db
+      .update(usuariosSchema)
+      .set({ fotoUrl, updatedAt: new Date() })
+      .where(eq(usuariosSchema.id, id));
+  }
+
   async delete(id: string): Promise<void> {
     await this.drizzleService.db
       .delete(usuariosSchema)
@@ -161,6 +168,7 @@ export class DrizzleUsuarioRepository implements UsuarioRepository {
       senhaHash: row.senhaHash,
       role: row.role as UsuarioRole,
       status: row.status as UsuarioStatus,
+      fotoUrl: row.fotoUrl,
       atleticaId: row.atleticaId,
       associadoId: row.associadoId,
       ativadoEm: row.ativadoEm,

@@ -140,4 +140,21 @@ export class UsuarioService {
     const rows = await this.usuarioRepository.findByAtletica(atleticaId);
     return rows.map((row) => UsuarioDto.fromUsuario(row)!);
   }
+
+  /**
+   * Atualiza a foto de perfil do próprio usuário autenticado.
+   * O arquivo já foi salvo em disco pelo Multer antes de chegar aqui;
+   * só persistimos a URL pública resultante.
+   */
+  async uploadFotoPerfil(userId: string, fotoUrl: string): Promise<UsuarioDto> {
+    const usuario = await this.usuarioRepository.findById(userId);
+    if (!usuario) throw new NotFoundException("Usuário não encontrado");
+
+    await this.usuarioRepository.updateFotoUrl(userId, fotoUrl);
+    usuario.withFotoUrl(fotoUrl);
+
+    await this.messagingService.publishUsuarioUpdated(UsuarioDto.fromUsuario(usuario)!);
+
+    return UsuarioDto.fromUsuario(usuario)!;
+  }
 }

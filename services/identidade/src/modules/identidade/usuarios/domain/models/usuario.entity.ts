@@ -9,6 +9,7 @@ export class Usuario {
   private _senhaHash?: string | null;
   private _role!: UsuarioRole;
   private _status!: UsuarioStatus;
+  private _fotoUrl?: string | null;
   private _atleticaId!: string;
   private _associadoId?: string | null;
   private _ativadoEm?: Date | null;
@@ -28,6 +29,7 @@ export class Usuario {
   get senhaHash(): string | null | undefined { return this._senhaHash; }
   get role(): UsuarioRole { return this._role; }
   get status(): UsuarioStatus { return this._status; }
+  get fotoUrl(): string | null | undefined { return this._fotoUrl; }
   get atleticaId(): string { return this._atleticaId; }
   get associadoId(): string | null | undefined { return this._associadoId; }
   get ativadoEm(): Date | null | undefined { return this._ativadoEm; }
@@ -45,6 +47,7 @@ export class Usuario {
   withSenhaHash(senhaHash: string) { this._senhaHash = senhaHash; return this; }
   withRole(role: UsuarioRole) { this._role = role; return this; }
   withStatus(status: UsuarioStatus) { this._status = status; return this; }
+  withFotoUrl(fotoUrl: string | null) { this._fotoUrl = fotoUrl; return this; }
   withAtleticaId(atleticaId: string) { this._atleticaId = atleticaId; return this; }
   withAssociadoId(associadoId: string | null) { this._associadoId = associadoId; return this; }
   withAtivadoEm(ativadoEm: Date | null) { this._ativadoEm = ativadoEm; return this; }
@@ -57,6 +60,7 @@ export class Usuario {
     senhaHash?: string | null;
     role: UsuarioRole;
     status: UsuarioStatus;
+    fotoUrl?: string | null;
     atleticaId: string;
     associadoId?: string | null;
     ativadoEm?: Date | null;
@@ -72,6 +76,7 @@ export class Usuario {
     usuario._senhaHash = props.senhaHash ?? null;
     usuario._role = props.role;
     usuario._status = props.status;
+    usuario._fotoUrl = props.fotoUrl ?? null;
     usuario._atleticaId = props.atleticaId;
     usuario._associadoId = props.associadoId ?? null;
     usuario._ativadoEm = props.ativadoEm ?? null;

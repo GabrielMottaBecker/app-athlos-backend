@@ -11,6 +11,7 @@ export const usuariosSchema = pgTable("usuarios", {
   senhaHash: varchar("senha_hash", { length: 255 }),
   role: usuarioRoleEnum("role").notNull().default("MEMBRO"),
   status: usuarioStatusEnum("status").notNull().default("ATIVO"),
+  fotoUrl: text("foto_url"),
   atleticaId: uuid("atletica_id").notNull(),
   associadoId: uuid("associado_id").unique(),
   ativadoEm: timestamp("ativado_em", { withTimezone: true }),
