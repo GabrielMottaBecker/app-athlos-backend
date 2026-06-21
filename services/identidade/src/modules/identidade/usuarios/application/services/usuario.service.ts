@@ -10,8 +10,9 @@ import {
 } from "@identidade/usuarios/domain/repositories/usuario-repository.interface";
 import {
   ConflictException,
-  Inject,
   Injectable,
+  Inject,
+  Logger,
   NotFoundException,
 } from "@nestjs/common";
 import type { PaginatedResult, PaginationParams } from "@shared/infra/hateoas";
@@ -19,6 +20,8 @@ import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class UsuarioService {
+  private readonly logger = new Logger(UsuarioService.name);
+
   constructor(
     @Inject(USUARIO_REPOSITORY)
     private readonly usuarioRepository: UsuarioRepository,
@@ -48,6 +51,34 @@ export class UsuarioService {
     if (!criado) throw new NotFoundException("Usuário criado não encontrado");
 
     await this.messagingService.publishUsuarioCreated(UsuarioDto.fromUsuario(criado)!);
+  }
+
+  /**
+   * Cria o pré-cadastro de um membro a partir do evento associado.created.
+   * O usuário fica sem senha (inativo para login) até concluir a ativação
+   * em /auth/verificar-associado + /auth/definir-senha.
+   * Idempotente: se o associado já tiver um usuário vinculado, não duplica.
+   */
+  async createPreCadastro(data: {
+    nome: string;
+    email: string;
+    telefone: string;
+    atleticaId: string;
+    associadoId: string;
+  }): Promise<void> {
+    const existente = await this.usuarioRepository.findByAssociadoId(data.associadoId);
+    if (existente) {
+      this.logger.log(`Pré-cadastro já existe para o associado ${data.associadoId}, ignorando.`);
+      return;
+    }
+
+    const emailExistente = await this.usuarioRepository.findByEmail(data.email);
+    if (emailExistente) {
+      this.logger.warn(`Email ${data.email} já está em uso por outro usuário; pré-cadastro não criado.`);
+      return;
+    }
+
+    await this.usuarioRepository.createPreCadastro(data);
   }
 
   async edit(id: string, dto: UpdateUsuarioDto): Promise<void> {

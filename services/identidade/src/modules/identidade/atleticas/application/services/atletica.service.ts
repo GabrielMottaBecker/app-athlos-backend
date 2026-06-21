@@ -18,6 +18,7 @@ export class AtleticaService {
         nomePresidente: dto.nomePresidente,
         corPrimaria: dto.corPrimaria ?? null,
         corFundo: dto.corFundo ?? null,
+        logoUrl: dto.logoUrl ?? null,
       })
       .returning();
 
@@ -49,6 +50,7 @@ export class AtleticaService {
         ...(dto.nomePresidente && { nomePresidente: dto.nomePresidente }),
         ...(dto.corPrimaria !== undefined && { corPrimaria: dto.corPrimaria }),
         ...(dto.corFundo !== undefined && { corFundo: dto.corFundo }),
+        ...(dto.logoUrl !== undefined && { logoUrl: dto.logoUrl }),
         atualizadoEm: new Date(),
       })
       .where(eq(atleticasTable.id, id));
@@ -61,6 +63,7 @@ export class AtleticaService {
       nomePresidente: row.nomePresidente,
       corPrimaria: row.corPrimaria ?? null,
       corFundo: row.corFundo ?? null,
+      logoUrl: row.logoUrl ?? null,
       criadoEm: row.criadoEm.toISOString(),
     };
   }

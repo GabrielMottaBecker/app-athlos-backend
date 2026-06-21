@@ -9,6 +9,7 @@ import {
 } from "@identidade/usuarios/domain/repositories/usuario-repository.interface";
 import { AuthController } from "@identidade/usuarios/infra/controllers/auth.controller";
 import { UsuariosController } from "@identidade/usuarios/infra/controllers/usuarios.controller";
+import { AssociadoCreatedConsumer } from "@identidade/usuarios/infra/messaging/associado-created.consumer";
 import { DrizzleRefreshTokenRepository } from "@identidade/usuarios/infra/repositories/drizzle-refresh-token.repository";
 import { DrizzleUsuarioRepository } from "@identidade/usuarios/infra/repositories/drizzle-usuario.repository";
 import { Module } from "@nestjs/common";
@@ -19,6 +20,7 @@ import { Module } from "@nestjs/common";
     AuthService,
     UsuarioService,
     UsuarioMessagingService,
+    AssociadoCreatedConsumer,
     DrizzleUsuarioRepository,
     DrizzleRefreshTokenRepository,
     {

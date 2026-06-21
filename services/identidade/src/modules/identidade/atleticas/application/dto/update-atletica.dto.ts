@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsHexColor, IsOptional, IsString } from "class-validator";
+import { IsHexColor, IsOptional, IsString, IsUrl } from "class-validator";
 
 export class UpdateAtleticaDto {
   @ApiPropertyOptional({ example: "Pantheon Nexgen 2026" })
@@ -21,4 +21,9 @@ export class UpdateAtleticaDto {
   @IsHexColor()
   @IsOptional()
   corFundo?: string;
+
+  @ApiPropertyOptional({ example: "https://meusite.com/logo-atletica.png" })
+  @IsUrl()
+  @IsOptional()
+  logoUrl?: string;
 }

@@ -16,13 +16,45 @@ export class DrizzleUsuarioRepository implements UsuarioRepository {
     await this.drizzleService.db.insert(usuariosSchema).values({
       nome: usuario.nome,
       email: usuario.email,
-      senhaHash: usuario.senhaHash,
+      telefone: usuario.telefone ?? null,
+      senhaHash: usuario.senhaHash ?? null,
       role: usuario.role,
       status: usuario.status,
       atleticaId: usuario.atleticaId,
+      associadoId: usuario.associadoId ?? null,
+      ativadoEm: usuario.ativadoEm ?? null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+  }
+
+  async createPreCadastro(data: {
+    nome: string;
+    email: string;
+    telefone: string;
+    atleticaId: string;
+    associadoId: string;
+  }): Promise<void> {
+    await this.drizzleService.db.insert(usuariosSchema).values({
+      nome: data.nome,
+      email: data.email.toLowerCase(),
+      telefone: data.telefone,
+      senhaHash: null,
+      role: "MEMBRO",
+      status: "ATIVO",
+      atleticaId: data.atleticaId,
+      associadoId: data.associadoId,
+      ativadoEm: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+
+  async definirSenha(id: string, senhaHash: string): Promise<void> {
+    await this.drizzleService.db
+      .update(usuariosSchema)
+      .set({ senhaHash, ativadoEm: new Date(), updatedAt: new Date() })
+      .where(eq(usuariosSchema.id, id));
   }
 
   async update(usuario: Usuario): Promise<void> {
@@ -31,7 +63,8 @@ export class DrizzleUsuarioRepository implements UsuarioRepository {
       .set({
         nome: usuario.nome,
         email: usuario.email,
-        senhaHash: usuario.senhaHash,
+        telefone: usuario.telefone ?? null,
+        senhaHash: usuario.senhaHash ?? null,
         role: usuario.role,
         updatedAt: new Date(),
       })
@@ -66,6 +99,16 @@ export class DrizzleUsuarioRepository implements UsuarioRepository {
       .select()
       .from(usuariosSchema)
       .where(eq(usuariosSchema.email, email.toLowerCase()))
+      .limit(1);
+
+    return this.toEntity(result[0]);
+  }
+
+  async findByAssociadoId(associadoId: string): Promise<Usuario | null> {
+    const result = await this.drizzleService.db
+      .select()
+      .from(usuariosSchema)
+      .where(eq(usuariosSchema.associadoId, associadoId))
       .limit(1);
 
     return this.toEntity(result[0]);
@@ -114,10 +157,13 @@ export class DrizzleUsuarioRepository implements UsuarioRepository {
       id: row.id,
       nome: row.nome,
       email: row.email,
+      telefone: row.telefone,
       senhaHash: row.senhaHash,
       role: row.role as UsuarioRole,
       status: row.status as UsuarioStatus,
       atleticaId: row.atleticaId,
+      associadoId: row.associadoId,
+      ativadoEm: row.ativadoEm,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     });
