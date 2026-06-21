@@ -1,6 +1,7 @@
 import { ConfirmarPresencaEventoDto } from "@feed/eventos/application/dto/confirmar-presenca-evento.dto";
 import { CreateEventoDto } from "@feed/eventos/application/dto/create-evento.dto";
 import { EventoDto } from "@feed/eventos/application/dto/evento.dto";
+import { PresencaParticipanteDto } from "@feed/eventos/application/dto/presenca-participante.dto";
 import { EventoMessagingService } from "@feed/eventos/application/services/evento-messaging.service";
 import { UpdateEventoDto } from "@feed/eventos/application/dto/update-evento.dto";
 import { Evento, TipoEvento } from "@feed/eventos/domain/models/evento.entity";
@@ -14,7 +15,6 @@ import {
   type PresencaEventoRepository,
 } from "@feed/eventos/domain/repositories/presenca-evento-repository.interface";
 import {
-  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
@@ -90,28 +90,52 @@ export class EventoService {
     };
   }
 
-  async findById(id: string): Promise<EventoDto | null> {
+  async findById(id: string, usuarioId?: string): Promise<EventoDto | null> {
     const evento = await this.eventoRepository.findById(id);
-    return EventoDto.fromEvento(evento);
+    if (!evento) return null;
+
+    const confirmado = usuarioId
+      ? Boolean(await this.presencaRepository.findByEventoAndUsuario(id, usuarioId))
+      : false;
+
+    return EventoDto.fromEvento(evento, confirmado);
   }
 
-  async findByAtletica(atleticaId: string): Promise<EventoDto[]> {
+  async findByAtletica(atleticaId: string, usuarioId?: string): Promise<EventoDto[]> {
     const rows = await this.eventoRepository.findByAtletica(atleticaId);
-    return rows.map((row) => EventoDto.fromEvento(row)!);
+    return this.toDtosWithConfirmacao(rows, usuarioId);
   }
 
   async findByAtleticaAndType(
     atleticaId: string,
     type: TipoEvento,
+    usuarioId?: string,
   ): Promise<EventoDto[]> {
     const rows = await this.eventoRepository.findByAtleticaAndType(atleticaId, type);
-    return rows.map((row) => EventoDto.fromEvento(row)!);
+    return this.toDtosWithConfirmacao(rows, usuarioId);
+  }
+
+  private async toDtosWithConfirmacao(
+    rows: Evento[],
+    usuarioId?: string,
+  ): Promise<EventoDto[]> {
+    if (!usuarioId || rows.length === 0) {
+      return rows.map((row) => EventoDto.fromEvento(row)!);
+    }
+
+    const confirmedIds = await this.presencaRepository.findConfirmedEventIds(
+      usuarioId,
+      rows.map((row) => row.id!),
+    );
+
+    return rows.map((row) => EventoDto.fromEvento(row, confirmedIds.has(row.id!))!);
   }
 
   async confirmarPresenca(
     eventoId: string,
     dto: ConfirmarPresencaEventoDto | undefined,
     usuarioAutenticadoId: string,
+    emailAutenticado: string,
   ): Promise<void> {
     const evento = await this.eventoRepository.findById(eventoId);
     if (!evento) throw new NotFoundException("Evento nao encontrado");
@@ -122,11 +146,15 @@ export class EventoService {
       usuarioId,
     );
 
-    if (existente) throw new ConflictException("Presenca ja confirmada");
+    // Idempotente: se o usuario ja confirmou presenca, apenas retorna com
+    // sucesso (sem erro) em vez de 409 — evita falhas no client em caso de
+    // reabertura de tela, retry de rede, ou clique duplicado.
+    if (existente) return;
 
     const presenca = PresencaEvento.restore({
       eventoId,
       usuarioId,
+      email: emailAutenticado,
       status: StatusPresencaEvento.CONFIRMADA,
     })!;
 
@@ -141,8 +169,18 @@ export class EventoService {
       eventoId,
       usuarioId,
     );
-    if (!presenca) throw new NotFoundException("Presenca nao encontrada");
+    // Idempotente: se nao havia presenca confirmada, nao ha nada a fazer.
+    if (!presenca) return;
 
     await this.presencaRepository.delete(eventoId, usuarioId);
+  }
+
+  /** Uso administrativo: lista quem confirmou presenca em um evento/treino. */
+  async listarPresencas(eventoId: string): Promise<PresencaParticipanteDto[]> {
+    const evento = await this.eventoRepository.findById(eventoId);
+    if (!evento) throw new NotFoundException("Evento nao encontrado");
+
+    const presencas = await this.presencaRepository.findByEvento(eventoId);
+    return presencas.map((presenca) => PresencaParticipanteDto.fromPresenca(presenca));
   }
 }

@@ -35,6 +35,7 @@ export const eventoPresencasSchema = pgTable(
       .notNull()
       .references(() => eventosSchema.id, { onDelete: "cascade" }),
     usuarioId: uuid("usuario_id").notNull(),
+    email: text("email").notNull().default(""),
     status: statusPresencaEventoEnum("status").notNull().default(StatusPresencaEvento.CONFIRMADA),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),

@@ -1,6 +1,7 @@
 import { ConfirmarPresencaEventoDto } from "@feed/eventos/application/dto/confirmar-presenca-evento.dto";
 import { CreateEventoDto } from "@feed/eventos/application/dto/create-evento.dto";
 import { EventoDto } from "@feed/eventos/application/dto/evento.dto";
+import { PresencaParticipanteDto } from "@feed/eventos/application/dto/presenca-participante.dto";
 import { UpdateEventoDto } from "@feed/eventos/application/dto/update-evento.dto";
 import { EventoService } from "@feed/eventos/application/services/evento.service";
 import { TipoEvento } from "@feed/eventos/domain/models/evento.entity";
@@ -53,8 +54,11 @@ export class EventosController {
   @Get("atletica/:atleticaId")
   @RequirePermissions(Permission.EVENTOS_READ)
   @ApiOperation({ summary: "Listar eventos de uma Atletica" })
-  async findByAtletica(@Param("atleticaId") atleticaId: string): Promise<EventoDto[]> {
-    return this.eventoService.findByAtletica(atleticaId);
+  async findByAtletica(
+    @Param("atleticaId") atleticaId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<EventoDto[]> {
+    return this.eventoService.findByAtletica(atleticaId, user.sub);
   }
 
   @Get("atletica/:atleticaId/tipo/:type")
@@ -63,16 +67,20 @@ export class EventosController {
   async findByAtleticaAndType(
     @Param("atleticaId") atleticaId: string,
     @Param("type", new ParseEnumPipe(TipoEvento)) type: TipoEvento,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<EventoDto[]> {
-    return this.eventoService.findByAtleticaAndType(atleticaId, type);
+    return this.eventoService.findByAtleticaAndType(atleticaId, type, user.sub);
   }
 
   @Get(":id")
   @RequirePermissions(Permission.EVENTOS_READ)
   @ApiOperation({ summary: "Buscar evento por ID" })
   @ApiNotFoundResponse({ description: "Evento nao encontrado" })
-  async findById(@Param("id") id: string): Promise<EventoDto | null> {
-    return this.eventoService.findById(id);
+  async findById(
+    @Param("id") id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<EventoDto | null> {
+    return this.eventoService.findById(id, user.sub);
   }
 
   @Post()
@@ -116,7 +124,7 @@ export class EventosController {
     @Body() body: ConfirmarPresencaEventoDto,
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<void> {
-    return this.eventoService.confirmarPresenca(id, body, user.sub);
+    return this.eventoService.confirmarPresenca(id, body, user.sub, user.email);
   }
 
   @Delete(":id/presencas/:usuarioId")
@@ -130,5 +138,15 @@ export class EventosController {
     @Param("usuarioId") usuarioId: string,
   ): Promise<void> {
     return this.eventoService.removerPresenca(id, usuarioId);
+  }
+
+  @Get(":id/presencas")
+  @RequirePermissions(Permission.EVENTOS_WRITE)
+  @ApiOperation({ summary: "Listar quem confirmou presenca em um evento (uso administrativo)" })
+  @ApiNotFoundResponse({ description: "Evento nao encontrado" })
+  async listarPresencas(
+    @Param("id") id: string,
+  ): Promise<PresencaParticipanteDto[]> {
+    return this.eventoService.listarPresencas(id);
   }
 }
