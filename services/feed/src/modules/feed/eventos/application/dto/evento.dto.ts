@@ -36,7 +36,13 @@ export class EventoDto {
   @ApiProperty()
   updatedAt!: Date;
 
-  static fromEvento(evento: Evento | null): EventoDto | null {
+  @ApiProperty({
+    example: false,
+    description: "Indica se o usuario autenticado ja confirmou presenca neste evento.",
+  })
+  confirmado!: boolean;
+
+  static fromEvento(evento: Evento | null, confirmado = false): EventoDto | null {
     if (!evento) return null;
 
     const dto = new EventoDto();
@@ -51,6 +57,7 @@ export class EventoDto {
     dto.atleticaId = evento.atleticaId;
     dto.createdAt = evento.createdAt!;
     dto.updatedAt = evento.updatedAt!;
+    dto.confirmado = confirmado;
     return dto;
   }
 }

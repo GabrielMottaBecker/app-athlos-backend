@@ -1,0 +1,1 @@
+ALTER TYPE "tipo_evento" ADD VALUE IF NOT EXISTS 'AVISO';
