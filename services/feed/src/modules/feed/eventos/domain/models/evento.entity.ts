@@ -3,6 +3,7 @@ export enum TipoEvento {
   EVENTO_SOCIAL = "EVENTO SOCIAL",
   EXTRAS = "EXTRAS",
   COMPETICAO = "COMPETICAO",
+  AVISO = "AVISO",
 }
 
 export class Evento {

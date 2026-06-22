@@ -7,6 +7,7 @@ export const tipoEventoEnum = pgEnum("tipo_evento", [
   TipoEvento.EVENTO_SOCIAL,
   TipoEvento.EXTRAS,
   TipoEvento.COMPETICAO,
+  TipoEvento.AVISO,
 ]);
 
 export const statusPresencaEventoEnum = pgEnum("status_presenca_evento", [

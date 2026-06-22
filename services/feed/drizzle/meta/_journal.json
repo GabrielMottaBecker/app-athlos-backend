@@ -15,6 +15,13 @@
       "when": 1780527600000,
       "tag": "0001_add_email_evento_presencas",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780614000000,
+      "tag": "0002_add_aviso_tipo_evento",
+      "breakpoints": true
     }
   ]
 }
