@@ -43,6 +43,13 @@
       "when": 1748500000000,
       "tag": "0005_add_foto_url_usuario",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1748600000000,
+      "tag": "0006_add_status_atletica",
+      "breakpoints": true
     }
   ]
 }

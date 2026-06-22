@@ -19,6 +19,9 @@ export class AtleticaDto {
   @ApiPropertyOptional()
   logoUrl?: string | null;
 
+  @ApiProperty({ enum: ["ATIVO", "INATIVO"], default: "ATIVO" })
+  status!: string;
+
   @ApiProperty()
   criadoEm!: string;
 }

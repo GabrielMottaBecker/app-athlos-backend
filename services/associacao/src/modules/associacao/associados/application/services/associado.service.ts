@@ -32,7 +32,7 @@ export class AssociadoService {
 
     const docExistente = await this.associadoRepository.findByDocumento(dto.documento);
     if (docExistente) {
-      throw new ConflictException("Documento (CPF) já cadastrado");
+      throw new ConflictException("Registro Acadêmico já cadastrado em outro usuário");
     }
 
     const associado = Associado.restore({
@@ -73,7 +73,7 @@ export class AssociadoService {
 
     if (dto.documento && dto.documento !== associado.documento) {
       const existente = await this.associadoRepository.findByDocumento(dto.documento);
-      if (existente) throw new ConflictException("Documento já cadastrado");
+      if (existente) throw new ConflictException("Registro Acadêmico já cadastrado em outro usuário");
     }
 
     if (dto.nome) associado.withNome(dto.nome);

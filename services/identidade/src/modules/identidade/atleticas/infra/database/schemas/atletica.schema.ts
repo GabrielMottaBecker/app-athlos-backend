@@ -7,6 +7,7 @@ export const atleticasTable = pgTable("atleticas", {
   corPrimaria:    varchar("cor_primaria", { length: 7 }),
   corFundo:       varchar("cor_fundo", { length: 7 }),
   logoUrl:        text("logo_url"),
+  status:         varchar("status", { length: 10 }).notNull().default("ATIVO"),
   criadoEm:       timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
   atualizadoEm:   timestamp("atualizado_em", { withTimezone: true }).defaultNow().notNull(),
 });

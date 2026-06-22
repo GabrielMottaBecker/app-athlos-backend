@@ -5,6 +5,7 @@ import { AtleticaService } from "@identidade/atleticas/application/services/atle
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -22,7 +23,14 @@ import {
 } from "@nestjs/swagger";
 import { Permission } from "@shared/domain/enums/permission.enum";
 import { RequirePermissions } from "@shared/infra/decorators/permissions.decorator";
-import { Public } from "@shared/infra/decorators/public.decorator";
+import { IsEnum } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
+
+class ChangeStatusAtleticaDto {
+  @ApiProperty({ enum: ["ATIVO", "INATIVO"] })
+  @IsEnum(["ATIVO", "INATIVO"])
+  status!: "ATIVO" | "INATIVO";
+}
 
 @ApiTags("atleticas")
 @Controller("atleticas")
@@ -67,5 +75,30 @@ export class AtleticasController {
     @Body() body: UpdateAtleticaDto,
   ): Promise<void> {
     return this.atleticaService.update(id, body);
+  }
+
+  @Patch(":id/status")
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @RequirePermissions(Permission.SUPER_ADMIN)
+  @ApiOperation({ summary: "Ativar ou inativar atlética (apenas Super Admin)" })
+  @ApiNoContentResponse({ description: "Status alterado" })
+  @ApiNotFoundResponse({ description: "Atlética não encontrada" })
+  async changeStatus(
+    @Param("id") id: string,
+    @Body() body: ChangeStatusAtleticaDto,
+  ): Promise<void> {
+    return this.atleticaService.changeStatus(id, body.status);
+  }
+
+  @Delete(":id")
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @RequirePermissions(Permission.SUPER_ADMIN)
+  @ApiOperation({ summary: "Excluir atlética permanentemente (apenas Super Admin)" })
+  @ApiNoContentResponse({ description: "Atlética excluída" })
+  @ApiNotFoundResponse({ description: "Atlética não encontrada" })
+  async delete(@Param("id") id: string): Promise<void> {
+    return this.atleticaService.delete(id);
   }
 }

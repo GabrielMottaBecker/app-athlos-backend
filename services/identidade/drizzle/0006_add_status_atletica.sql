@@ -1,0 +1,1 @@
+ALTER TABLE "atleticas" ADD COLUMN IF NOT EXISTS "status" varchar(10) NOT NULL DEFAULT 'ATIVO';

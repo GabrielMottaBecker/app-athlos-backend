@@ -35,6 +35,11 @@ export class AtleticaService {
     return this.toDto(row);
   }
 
+  async findAll(): Promise<AtleticaDto[]> {
+    const rows = await this.drizzle.db.select().from(atleticasTable);
+    return rows.map((row) => this.toDto(row));
+  }
+
   async update(id: string, dto: UpdateAtleticaDto): Promise<void> {
     const [existing] = await this.drizzle.db
       .select()
@@ -56,6 +61,33 @@ export class AtleticaService {
       .where(eq(atleticasTable.id, id));
   }
 
+  async changeStatus(id: string, status: "ATIVO" | "INATIVO"): Promise<void> {
+    const [existing] = await this.drizzle.db
+      .select()
+      .from(atleticasTable)
+      .where(eq(atleticasTable.id, id));
+
+    if (!existing) throw new NotFoundException("Atlética não encontrada");
+
+    await this.drizzle.db
+      .update(atleticasTable)
+      .set({ status, atualizadoEm: new Date() })
+      .where(eq(atleticasTable.id, id));
+  }
+
+  async delete(id: string): Promise<void> {
+    const [existing] = await this.drizzle.db
+      .select()
+      .from(atleticasTable)
+      .where(eq(atleticasTable.id, id));
+
+    if (!existing) throw new NotFoundException("Atlética não encontrada");
+
+    await this.drizzle.db
+      .delete(atleticasTable)
+      .where(eq(atleticasTable.id, id));
+  }
+
   private toDto(row: typeof atleticasTable.$inferSelect): AtleticaDto {
     return {
       id: row.id,
@@ -64,15 +96,8 @@ export class AtleticaService {
       corPrimaria: row.corPrimaria ?? null,
       corFundo: row.corFundo ?? null,
       logoUrl: row.logoUrl ?? null,
+      status: row.status,
       criadoEm: row.criadoEm.toISOString(),
     };
-  }
-
-  async findAll(): Promise<AtleticaDto[]> {
-    const rows = await this.drizzle.db
-      .select()
-      .from(atleticasTable);
-
-    return rows.map((row) => this.toDto(row));
   }
 }
